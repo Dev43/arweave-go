@@ -20,10 +20,10 @@ func (c *ArweaveClient) CreateTransaction(w *Wallet, data []byte) (*JsonTransact
 	// 	return nil, err
 	// }
 	tx := Transaction{
-		lastTx:   lastTx,
+		lastTx:   base64.RawURLEncoding.EncodeToString([]byte(lastTx)),
 		owner:    w.Public(),
 		quantity: "10",
-		target:   "xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g",
+		target:   base64.RawURLEncoding.EncodeToString([]byte("xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g")),
 		data:     base64.RawURLEncoding.EncodeToString(data),
 		reward:   "2000",
 		tags:     []interface{}{},

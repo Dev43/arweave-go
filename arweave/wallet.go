@@ -25,20 +25,17 @@ func (w *Wallet) Public() string {
 }
 
 func (w *Wallet) Sign(msg []byte) (string, error) {
+	// RSASSA-PSS using SHA256 and MGF1-SHA256
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.PS256, Key: w.key}, nil)
 	if err != nil {
 		return "", err
 	}
 	object, err := signer.Sign(msg)
-	// var payload = []byte("Lorem ipsum dolor sit amet")
-	// object, err := signer.Sign(payload)
 	if err != nil {
 		return "", err
 	}
-	serialized, err := object.CompactSerialize()
-	if err != nil {
-		return "", err
-	}
+	serialized := object.FullSerialize()
+
 	return serialized, nil
 }
 

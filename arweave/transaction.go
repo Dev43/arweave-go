@@ -2,6 +2,7 @@ package arweave
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 )
 
@@ -20,14 +21,17 @@ func NewTransaction(lastTx string, owner string, quantity string, txType string,
 }
 
 func (t *Transaction) Data() string {
-	return t.data
+	data, _ := base64.RawURLEncoding.DecodeString(t.data)
+	return string(data)
 }
 func (t *Transaction) LastTx() string {
-	return t.lastTx
+	lastTx, _ := base64.RawURLEncoding.DecodeString(t.lastTx)
+	return string(lastTx)
 }
 
 func (t *Transaction) Owner() string {
-	return t.owner
+	data, _ := base64.RawURLEncoding.DecodeString(t.owner)
+	return string(data)
 }
 func (t *Transaction) Quantity() string {
 	return t.quantity
@@ -38,25 +42,33 @@ func (t *Transaction) Reward() string {
 }
 
 func (t *Transaction) Target() string {
-	return t.target
+	data, _ := base64.RawURLEncoding.DecodeString(t.target)
+	return string(data)
 }
 func (t *Transaction) Id() string {
 	return t.id
 }
 
+type signature struct {
+	Signature string `json:"signature"`
+}
+
 func (t *Transaction) Sign(w *Wallet) error {
 	payload := []byte(t.formatMsg())
-	sig, err := w.Sign(payload)
+	fullSig, err := w.Sign(payload)
 	if err != nil {
 		return err
 	}
 	// Ensure sig is valid
-	err = w.Verify(payload, sig)
+	err = w.Verify(payload, fullSig)
 	if err != nil {
 		return err
 	}
-	// t.signature = sig
-	t.signature = base64.RawURLEncoding.EncodeToString([]byte(sig))
+	// Extract the signature
+	sig := signature{}
+	json.Unmarshal([]byte(fullSig), &sig)
+	// Encode it to base64url
+	t.signature = base64.RawURLEncoding.EncodeToString([]byte(sig.Signature))
 	return nil
 }
 
