@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	ar, err := arweave.NewArweave(context.TODO(), "http://159.89.121.10:1984")
+	ar, err := arweave.NewArweave(context.TODO(), "http://127.0.0.1:1984")
 	if err != nil {
 		log.Fatal(err)
 	}
