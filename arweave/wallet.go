@@ -17,6 +17,7 @@ type Wallet struct {
 	address   string
 	key       *gojwk.Key
 	publicKey string
+	pubKey    *rsa.PublicKey
 }
 
 func (w *Wallet) Address() string {
@@ -24,7 +25,7 @@ func (w *Wallet) Address() string {
 }
 
 var opts = &rsa.PSSOptions{
-	SaltLength: rsa.PSSSaltLengthEqualsHash,
+	SaltLength: rsa.PSSSaltLengthAuto,
 	Hash:       crypto.SHA256,
 }
 
@@ -64,7 +65,7 @@ func (w *Wallet) Verify(msg []byte, sig []byte) error {
 }
 
 // Assumes a normal unencrypted JSK
-func (w *Wallet) Extract(fileName string) error {
+func (w *Wallet) ExtractKey(fileName string) error {
 
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -83,13 +84,14 @@ func (w *Wallet) Extract(fileName string) error {
 	if !ok {
 		return errors.New("could not typecast key to rsa public key")
 	}
+	w.pubKey = rsa
 	// Take the "n", in bytes and hash it using SHA256
 	h := sha256.New()
 	h.Write(rsa.N.Bytes())
 
 	// Finally base64url encode it to have the resulting address
 	w.address = base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	w.publicKey = rsa.N.String()
+	w.publicKey = base64.RawURLEncoding.EncodeToString(rsa.N.Bytes())
 	w.key = key
 
 	return nil

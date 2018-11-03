@@ -20,8 +20,8 @@ func (c *ArweaveClient) CreateTransaction(w *Wallet, data []byte) (*JsonTransact
 	// Non encoded transaction fields
 	tx := Transaction{
 		lastTx:   lastTx,
-		owner:    w.publicKey,
-		quantity: "100000000000",
+		owner:    w.pubKey.N,
+		quantity: "10",
 		target:   "xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g",
 		data:     "",
 		reward:   "321179212",
