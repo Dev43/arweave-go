@@ -2,8 +2,6 @@ package arweave
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 )
 
 func NewArweave(ctx context.Context, url string) (*ArweaveClient, error) {
@@ -19,20 +17,21 @@ func (c *ArweaveClient) CreateTransaction(w *Wallet, data []byte) (*JsonTransact
 	// if err != nil {
 	// 	return nil, err
 	// }
+	// Non encoded transaction fields
 	tx := Transaction{
-		lastTx:   base64.RawURLEncoding.EncodeToString([]byte(lastTx)),
-		owner:    w.Public(),
-		quantity: "10",
-		target:   base64.RawURLEncoding.EncodeToString([]byte("xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g")),
-		data:     base64.RawURLEncoding.EncodeToString(data),
-		reward:   "2000",
-		tags:     []interface{}{},
+		lastTx:   lastTx,
+		owner:    w.publicKey,
+		quantity: "100000000000",
+		target:   "xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g",
+		data:     "",
+		reward:   "321179212",
+		tags:     make([]map[string]interface{}, 0),
 	}
-	tx.Sign(w)
-	h := sha256.New()
-	h.Write([]byte(tx.signature))
-	id := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	tx.id = id
+
+	err = tx.Sign(w)
+	if err != nil {
+		return nil, err
+	}
 
 	return tx.FormatJson(), nil
 }

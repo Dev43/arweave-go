@@ -1,37 +1,20 @@
 package arweave
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 )
 
-// Really change all the data in a txn to be private, and make getters for it.
-
-func NewTransaction(lastTx string, owner string, quantity string, txType string, data string, reward string, id string, target string, tags []string) *Transaction {
-	return &Transaction{
-		id:       id,
-		lastTx:   lastTx,
-		owner:    owner,
-		quantity: quantity,
-		data:     data,
-		reward:   reward,
-		target:   target,
-	}
-}
-
 func (t *Transaction) Data() string {
-	data, _ := base64.RawURLEncoding.DecodeString(t.data)
-	return string(data)
+	return t.data
 }
 func (t *Transaction) LastTx() string {
-	lastTx, _ := base64.RawURLEncoding.DecodeString(t.lastTx)
-	return string(lastTx)
+	return t.lastTx
 }
 
 func (t *Transaction) Owner() string {
-	data, _ := base64.RawURLEncoding.DecodeString(t.owner)
-	return string(data)
+	return t.owner
 }
 func (t *Transaction) Quantity() string {
 	return t.quantity
@@ -42,10 +25,9 @@ func (t *Transaction) Reward() string {
 }
 
 func (t *Transaction) Target() string {
-	data, _ := base64.RawURLEncoding.DecodeString(t.target)
-	return string(data)
+	return t.target
 }
-func (t *Transaction) Id() string {
+func (t *Transaction) Id() [32]byte {
 	return t.id
 }
 
@@ -55,20 +37,24 @@ type signature struct {
 
 func (t *Transaction) Sign(w *Wallet) error {
 	payload := []byte(t.formatMsg())
-	fullSig, err := w.Sign(payload)
+	msg := sha256.Sum256(payload)
+	sig, err := w.Sign(msg[:])
 	if err != nil {
 		return err
 	}
 	// Ensure sig is valid
-	err = w.Verify(payload, fullSig)
+	err = w.Verify(msg[:], sig)
 	if err != nil {
 		return err
 	}
-	// Extract the signature
-	sig := signature{}
-	json.Unmarshal([]byte(fullSig), &sig)
-	// Encode it to base64url
-	t.signature = base64.RawURLEncoding.EncodeToString([]byte(sig.Signature))
+
+	// Now let's calculate the id
+	// Note the arweave client takes the SHA256 of the base64url encoded signature
+	id := sha256.Sum256([]byte(base64.RawURLEncoding.EncodeToString(sig)))
+
+	// add them to our transaction
+	t.signature = sig
+	t.id = id
 	return nil
 }
 
@@ -78,15 +64,16 @@ func (t *Transaction) formatMsg() string {
 }
 
 func (t *Transaction) FormatJson() *JsonTransaction {
+	// base64url Encode all the things
 	return &JsonTransaction{
-		Id:        t.id,
-		LastTx:    t.lastTx,
-		Owner:     t.owner,
+		Id:        base64.RawURLEncoding.EncodeToString(t.id[:]),
+		LastTx:    base64.RawURLEncoding.EncodeToString([]byte(t.lastTx)),
+		Owner:     base64.RawURLEncoding.EncodeToString([]byte(t.owner)),
 		Tags:      t.tags,
-		Target:    t.target,
+		Target:    base64.RawURLEncoding.EncodeToString([]byte(t.target)),
 		Quantity:  t.quantity,
-		Data:      t.data,
+		Data:      base64.RawURLEncoding.EncodeToString([]byte(t.data)),
 		Reward:    t.reward,
-		Signature: t.signature,
+		Signature: base64.RawURLEncoding.EncodeToString(t.signature),
 	}
 }
