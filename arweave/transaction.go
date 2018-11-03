@@ -40,7 +40,6 @@ type signature struct {
 
 func (t *Transaction) Sign(w *Wallet) error {
 	payload := t.formatMsgBytes()
-	// payload := []byte(t.formatMsg())
 	msg := sha256.Sum256(payload)
 	sig, err := w.Sign(msg[:])
 	if err != nil {
@@ -59,11 +58,6 @@ func (t *Transaction) Sign(w *Wallet) error {
 	t.signature = sig
 	t.id = id
 	return nil
-}
-
-// Creates the message that needs to be signed
-func (t *Transaction) formatMsg() string {
-	return fmt.Sprintf("%s%s%s%s%s%s", t.Owner(), t.Target(), t.Data(), t.Quantity(), t.Reward(), t.LastTx(), t.Tags())
 }
 
 func (t *Transaction) formatMsgBytes() []byte {
@@ -89,17 +83,14 @@ func (t *Transaction) formatMsgBytes() []byte {
 func (t *Transaction) FormatJson() *JsonTransaction {
 	// base64url Encode all the things
 	return &JsonTransaction{
-		Id:     base64.RawURLEncoding.EncodeToString(t.id[:]),
-		LastTx: (t.lastTx),
-		// LastTx: base64.RawURLEncoding.EncodeToString([]byte(t.lastTx)),
-		// Owner:    t.owner,
-		Owner:    base64.RawURLEncoding.EncodeToString([]byte(t.owner.Bytes())),
-		Tags:     t.tags,
-		Target:   (t.target),
-		Quantity: t.quantity,
-		Data:     base64.RawURLEncoding.EncodeToString([]byte("")),
-		// Reward:    t.reward,
-		Reward:    "3211792120",
+		Id:        base64.RawURLEncoding.EncodeToString(t.id[:]),
+		LastTx:    (t.lastTx),
+		Owner:     base64.RawURLEncoding.EncodeToString([]byte(t.owner.Bytes())),
+		Tags:      t.tags,
+		Target:    (t.target),
+		Quantity:  t.quantity,
+		Data:      base64.RawURLEncoding.EncodeToString([]byte("")),
+		Reward:    t.reward,
 		Signature: base64.RawURLEncoding.EncodeToString(t.signature),
 	}
 }
