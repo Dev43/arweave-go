@@ -6,52 +6,73 @@ import (
 	"fmt"
 )
 
+// Data returns the data of the transaction
 func (t *Transaction) Data() string {
 	return t.data
 }
+
+// LastTx returns the last transaction of the account
 func (t *Transaction) LastTx() string {
 	return t.lastTx
 }
 
+// Owner returns the Owner of the transaction
 func (t *Transaction) Owner() []byte {
 	return t.owner.Bytes()
 }
+
+// Quantity returns the quantity of the transaction
 func (t *Transaction) Quantity() string {
 	return t.quantity
 }
 
+// Reward returns the reward of the transaction
 func (t *Transaction) Reward() string {
 	return t.reward
 }
 
+// Target returns the target of the transaction
 func (t *Transaction) Target() string {
 	return t.target
 }
+
+// Id returns the id of the transaction which is the SHA256 of the signature
 func (t *Transaction) Id() [32]byte {
 	return t.id
 }
+
+// Tags returns the tags of the transaction
 func (t *Transaction) Tags() []map[string]interface{} {
 	return t.tags
 }
 
-type signature struct {
-	Signature string `json:"signature"`
-}
-
+// Sign creates the signing message, and signs it using the private key,
+// It takes the SHA256 of the resulting signature to calculate the id of
+// the signature
 func (t *Transaction) Sign(w *Wallet) error {
-	payload := t.formatMsgBytes()
+	// format the message
+	payload, err := t.formatMsgBytes()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// take the SHA256 of it
 	msg := sha256.Sum256(payload)
+
+	// sign it using the RSA private key
 	sig, err := w.Sign(msg[:])
 	if err != nil {
 		return err
 	}
-	// Ensure sig is valid
+
+	// ensure the signature is valid
 	err = w.Verify(msg[:], sig)
 	if err != nil {
 		return err
 	}
 
-	// Now let's calculate the id
+	// calculate the transaction id
 	id := sha256.Sum256((sig))
 
 	// add them to our transaction
@@ -60,16 +81,21 @@ func (t *Transaction) Sign(w *Wallet) error {
 	return nil
 }
 
-func (t *Transaction) formatMsgBytes() []byte {
+// formatMsgBytes formats the message that needs to be signed. All fields
+// need to be an array of bytes originating from the necessary data (not base64url encoded).
+// The signing message is the SHA256 of the concatenation of the byte arrays
+// of the owner public key, target address, data, quantity, reward and last transaction
+func (t *Transaction) formatMsgBytes() ([]byte, error) {
 	var msg []byte
 	lastTx, err := base64.RawURLEncoding.DecodeString(t.LastTx())
 	if err != nil {
-		fmt.Println("err", err)
+		return nil, err
 	}
 	target, err := base64.RawURLEncoding.DecodeString(t.Target())
 	if err != nil {
-		fmt.Println("err", err)
+		return nil, err
 	}
+
 	msg = append(msg, []byte(t.Owner())...)
 	msg = append(msg, target...)
 	msg = append(msg, []byte(t.Data())...)
@@ -77,11 +103,11 @@ func (t *Transaction) formatMsgBytes() []byte {
 	msg = append(msg, []byte(t.Reward())...)
 	msg = append(msg, lastTx...)
 
-	return msg
+	return msg, nil
 }
 
-func (t *Transaction) FormatJson() *JsonTransaction {
-	// base64url Encode all the things
+// Format formats the transactions to a JsonTransaction that can be sent out to an arweave node
+func (t *Transaction) Format() *JsonTransaction {
 	return &JsonTransaction{
 		Id:        base64.RawURLEncoding.EncodeToString(t.id[:]),
 		LastTx:    (t.lastTx),
@@ -89,7 +115,7 @@ func (t *Transaction) FormatJson() *JsonTransaction {
 		Tags:      t.tags,
 		Target:    (t.target),
 		Quantity:  t.quantity,
-		Data:      base64.RawURLEncoding.EncodeToString([]byte("")),
+		Data:      base64.RawURLEncoding.EncodeToString([]byte(t.Data())),
 		Reward:    t.reward,
 		Signature: base64.RawURLEncoding.EncodeToString(t.signature),
 	}

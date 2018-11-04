@@ -8,30 +8,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 )
 
+// ArweaveClient struct
 type ArweaveClient struct {
 	client *http.Client
 	url    string
 }
 
-func Dial(ctx context.Context, rawurl string) (*ArweaveClient, error) {
-	_, err := url.Parse(rawurl)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, rawurl, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	return &ArweaveClient{client: new(http.Client), url: rawurl}, nil
+// Dial creates a new arweave client
+func Dial(url string) (*ArweaveClient, error) {
+	return &ArweaveClient{client: new(http.Client), url: url}, nil
 }
 
+// GetData requests the data of a transaction
 func (c *ArweaveClient) GetData(txID string) (string, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s/data", txID))
 	if err != nil {
@@ -40,6 +30,7 @@ func (c *ArweaveClient) GetData(txID string) (string, error) {
 	return string(body), nil
 }
 
+// LastTransaction requests the last transaction of an account
 func (c *ArweaveClient) LastTransaction(address string) (string, error) {
 	body, err := c.get(fmt.Sprintf("wallet/%s/last_tx", address))
 	if err != nil {
@@ -48,6 +39,7 @@ func (c *ArweaveClient) LastTransaction(address string) (string, error) {
 	return string(body), nil
 }
 
+// GetTransaction requests the information of a transaction
 func (c *ArweaveClient) GetTransaction(txID string) (*JsonTransaction, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s", txID))
 	if err != nil {
@@ -61,19 +53,7 @@ func (c *ArweaveClient) GetTransaction(txID string) (*JsonTransaction, error) {
 	return &tx, nil
 }
 
-var allowedFields = map[string]bool{
-	"id":        true,
-	"last_tx":   true,
-	"owner":     true,
-	"target":    true,
-	"quantity":  true,
-	"type":      true,
-	"data":      true,
-	"reward":    true,
-	"signature": true,
-	"data.html": true,
-}
-
+// GetTransactionField requests the specific field of a specific transaction
 func (c *ArweaveClient) GetTransactionField(txID string, field string) (string, error) {
 	_, ok := allowedFields[field]
 	if !ok {
@@ -87,6 +67,7 @@ func (c *ArweaveClient) GetTransactionField(txID string, field string) (string, 
 	return string(body), nil
 }
 
+// GetBlockByID requests a block by its id
 func (c *ArweaveClient) GetBlockByID(blockID string) (*Block, error) {
 	body, err := c.get(fmt.Sprintf("block/hash/%s", blockID))
 	if err != nil {
@@ -101,6 +82,7 @@ func (c *ArweaveClient) GetBlockByID(blockID string) (*Block, error) {
 	return &block, nil
 }
 
+// GetBlockByHeight requests a block by its height
 func (c *ArweaveClient) GetBlockByHeight(height int64) (*Block, error) {
 	body, err := c.get(fmt.Sprintf("block/height/%d", height))
 	if err != nil {
@@ -115,6 +97,7 @@ func (c *ArweaveClient) GetBlockByHeight(height int64) (*Block, error) {
 	return &block, nil
 }
 
+// GetCurrentBlock requests the latest block of the weave
 func (c *ArweaveClient) GetCurrentBlock() (*Block, error) {
 	body, err := c.get("current_block")
 	if err != nil {
@@ -129,6 +112,7 @@ func (c *ArweaveClient) GetCurrentBlock() (*Block, error) {
 	return &block, nil
 }
 
+// GetReward requests the current network reward
 func (c *ArweaveClient) GetReward(data []byte) (string, error) {
 	body, err := c.get(fmt.Sprintf("price/%d", len(data)))
 	if err != nil {
@@ -137,6 +121,8 @@ func (c *ArweaveClient) GetReward(data []byte) (string, error) {
 	return string(body), nil
 
 }
+
+// GetBalance requests the current balance of an address
 func (c *ArweaveClient) GetBalance(address string) (string, error) {
 	body, err := c.get(fmt.Sprintf("wallet/%s/balance", address))
 	if err != nil {
@@ -146,6 +132,7 @@ func (c *ArweaveClient) GetBalance(address string) (string, error) {
 
 }
 
+// GetPeers requests the list of peers of a node
 func (c *ArweaveClient) GetPeers() ([]string, error) {
 	body, err := c.get("peers")
 	if err != nil {
@@ -161,6 +148,7 @@ func (c *ArweaveClient) GetPeers() ([]string, error) {
 
 }
 
+// GetInfo requests the information of a node
 func (c *ArweaveClient) GetInfo() (*NetworkInfo, error) {
 	body, err := c.get("info")
 	if err != nil {
@@ -171,6 +159,7 @@ func (c *ArweaveClient) GetInfo() (*NetworkInfo, error) {
 	return &info, nil
 }
 
+// Commit sends the serialized transaction to the arweave
 func (c *ArweaveClient) Commit(data []byte) (string, error) {
 	body, err := c.post(context.TODO(), "tx", data)
 	if err != nil {

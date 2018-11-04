@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -10,30 +8,41 @@ import (
 )
 
 func main() {
-	ar, err := arweave.NewArweave(context.TODO(), "http://127.0.0.1:1984")
+	// create a new arweave client
+	ar, err := arweave.NewArweaveClient("127.0.0.1")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Connected!")
+
+	// create a new wallet instance
 	w := arweave.NewWallet()
+	// extract the key from the wallet instance
 	err = w.ExtractKey("arweave.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Create a basic transaction (hardcoded for now)
-	tx, err := ar.CreateTransaction(w, []byte(""))
+	// create a transaction
+	tx, err := ar.CreateTransaction(w, "0", "I am on the weave", "xblmNxr6cqDT0z7QIWBCo8V0UfJLd3CRDffDhF5Uh9g")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	serialized, err := json.Marshal(tx)
+	// sign the transaction
+	err = tx.Sign(w)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(serialized))
-
-	resp, err := ar.Commit(serialized)
+	// send the transaction
+	resp, err := ar.SendTransaction(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println(resp)
-	fmt.Println(err)
+	txn := tx.Format()
+	pendingTx, err := ar.GetTransaction(txn.Id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(pendingTx)
 }

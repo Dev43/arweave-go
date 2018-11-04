@@ -6,13 +6,18 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io/ioutil"
 
 	"github.com/mendsley/gojwk"
 )
 
+var opts = &rsa.PSSOptions{
+	SaltLength: rsa.PSSSaltLengthAuto,
+	Hash:       crypto.SHA256,
+}
+
+// Wallet struct
 type Wallet struct {
 	address   string
 	key       *gojwk.Key
@@ -20,15 +25,12 @@ type Wallet struct {
 	pubKey    *rsa.PublicKey
 }
 
+// Address returns the address of the account
 func (w *Wallet) Address() string {
 	return w.address
 }
 
-var opts = &rsa.PSSOptions{
-	SaltLength: rsa.PSSSaltLengthAuto,
-	Hash:       crypto.SHA256,
-}
-
+// Sign signs a message using the RSA-PSS scheme with an MGF SHA256 masking function
 func (w *Wallet) Sign(msg []byte) ([]byte, error) {
 	priv, err := w.key.DecodePrivateKey()
 	if err != nil {
@@ -37,7 +39,7 @@ func (w *Wallet) Sign(msg []byte) ([]byte, error) {
 	rng := rand.Reader
 	privRsa, ok := priv.(*rsa.PrivateKey)
 	if !ok {
-		return nil, errors.New("could not typecast key to rsa public key")
+		return nil, fmt.Errorf("could not typecast key to %T", rsa.PrivateKey{})
 	}
 
 	sig, err := rsa.SignPSS(rng, privRsa, crypto.SHA256, msg, opts)
@@ -47,6 +49,7 @@ func (w *Wallet) Sign(msg []byte) ([]byte, error) {
 	return sig, nil
 }
 
+// Verify verifies the signature for the specific message
 func (w *Wallet) Verify(msg []byte, sig []byte) error {
 	pub, err := w.key.DecodePublicKey()
 	if err != nil {
@@ -54,7 +57,7 @@ func (w *Wallet) Verify(msg []byte, sig []byte) error {
 	}
 	pubKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
-		fmt.Println("could not typecast to rsa.PublicKey")
+		return fmt.Errorf("could not typecast key to %T", rsa.PublicKey{})
 	}
 
 	err = rsa.VerifyPSS(pubKey, crypto.SHA256, msg, sig, opts)
@@ -64,7 +67,8 @@ func (w *Wallet) Verify(msg []byte, sig []byte) error {
 	return nil
 }
 
-// Assumes a normal unencrypted JSK
+// ExtractKey extracts the necessary information from the arweave key file.
+// It assumes the arweave key file is unencrypted.
 func (w *Wallet) ExtractKey(fileName string) error {
 
 	b, err := ioutil.ReadFile(fileName)
@@ -80,23 +84,24 @@ func (w *Wallet) ExtractKey(fileName string) error {
 	if err != nil {
 		return err
 	}
-	rsa, ok := publicKey.(*rsa.PublicKey)
+	pubKey, ok := publicKey.(*rsa.PublicKey)
 	if !ok {
-		return errors.New("could not typecast key to rsa public key")
+		return fmt.Errorf("could not typecast key to %T", rsa.PublicKey{})
 	}
-	w.pubKey = rsa
+	w.pubKey = pubKey
 	// Take the "n", in bytes and hash it using SHA256
 	h := sha256.New()
-	h.Write(rsa.N.Bytes())
+	h.Write(pubKey.N.Bytes())
 
 	// Finally base64url encode it to have the resulting address
 	w.address = base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	w.publicKey = base64.RawURLEncoding.EncodeToString(rsa.N.Bytes())
+	w.publicKey = base64.RawURLEncoding.EncodeToString(pubKey.N.Bytes())
 	w.key = key
 
 	return nil
 }
 
+// NewWallet creates a new wallet instance
 func NewWallet() *Wallet {
 	return &Wallet{}
 }
