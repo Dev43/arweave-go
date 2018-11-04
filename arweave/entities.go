@@ -52,6 +52,7 @@ type Transaction struct {
 	signature []byte                   // Signature using the RSA-PSS signature scheme using SHA256 as the MGF1 masking algorithm
 }
 
+// JsonTransaction encoded transaction to send to the arweave client
 type JsonTransaction struct {
 	// Id A SHA2-256 hash of the signature, based 64 URL encoded.
 	Id string `json:"id"`
