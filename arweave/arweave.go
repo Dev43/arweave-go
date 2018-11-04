@@ -1,3 +1,5 @@
+// Package arweave provides functions to interact and create trasactions
+// for the arweave network
 package arweave
 
 import (
