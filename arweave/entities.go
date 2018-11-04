@@ -52,8 +52,8 @@ type Transaction struct {
 	signature []byte                   // Signature using the RSA-PSS signature scheme using SHA256 as the MGF1 masking algorithm
 }
 
-// JsonTransaction encoded transaction to send to the arweave client
-type JsonTransaction struct {
+// JSONTransaction encoded transaction to send to the arweave client
+type JSONTransaction struct {
 	// Id A SHA2-256 hash of the signature, based 64 URL encoded.
 	Id string `json:"id"`
 	// LastTx represents the ID of the last transaction made from the same address base64url encoded. If no previous transactions have been made from the address this field is set to an empty string.

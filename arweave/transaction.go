@@ -106,9 +106,9 @@ func (t *Transaction) formatMsgBytes() ([]byte, error) {
 	return msg, nil
 }
 
-// Format formats the transactions to a JsonTransaction that can be sent out to an arweave node
-func (t *Transaction) Format() *JsonTransaction {
-	return &JsonTransaction{
+// Format formats the transactions to a JSONTransaction that can be sent out to an arweave node
+func (t *Transaction) Format() *JSONTransaction {
+	return &JSONTransaction{
 		Id:        base64.RawURLEncoding.EncodeToString(t.id[:]),
 		LastTx:    (t.lastTx),
 		Owner:     base64.RawURLEncoding.EncodeToString([]byte(t.owner.Bytes())),

@@ -40,12 +40,12 @@ func (c *ArweaveClient) LastTransaction(address string) (string, error) {
 }
 
 // GetTransaction requests the information of a transaction
-func (c *ArweaveClient) GetTransaction(txID string) (*JsonTransaction, error) {
+func (c *ArweaveClient) GetTransaction(txID string) (*JSONTransaction, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s", txID))
 	if err != nil {
 		return nil, err
 	}
-	tx := JsonTransaction{}
+	tx := JSONTransaction{}
 	err = json.Unmarshal(body, &tx)
 	if err != nil {
 		return nil, err
