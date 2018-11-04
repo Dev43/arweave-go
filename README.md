@@ -4,9 +4,9 @@
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Dev43/arweave-go/blob/master/LICENSE.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Dev43/payment-channel)](https://goreportcard.com/report/github.com/Dev43/payment-channel)
 
-Golang SDK for the Arweave client. 
+Golang SDK for the Arweave client.
 
-Example od use:
+Example of use:
 
 ```golang
 package main
