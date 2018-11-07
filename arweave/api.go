@@ -53,6 +53,20 @@ func (c *ArweaveClient) GetTransaction(txID string) (*JSONTransaction, error) {
 	return &tx, nil
 }
 
+// GetTransaction requests the information of a transaction
+func (c *ArweaveClient) GetPendingTransactions() ([]string, error) {
+	body, err := c.get(fmt.Sprintf("tx/pending"))
+	if err != nil {
+		return nil, err
+	}
+	tx := []string{}
+	err = json.Unmarshal(body, &tx)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
 // GetTransactionField requests the specific field of a specific transaction
 func (c *ArweaveClient) GetTransactionField(txID string, field string) (string, error) {
 	_, ok := allowedFields[field]
