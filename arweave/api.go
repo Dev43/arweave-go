@@ -10,19 +10,19 @@ import (
 	"net/http"
 )
 
-// ArweaveClient struct
-type ArweaveClient struct {
+// Client struct
+type Client struct {
 	client *http.Client
 	url    string
 }
 
 // Dial creates a new arweave client
-func Dial(url string) (*ArweaveClient, error) {
-	return &ArweaveClient{client: new(http.Client), url: url}, nil
+func Dial(url string) (*Client, error) {
+	return &Client{client: new(http.Client), url: url}, nil
 }
 
 // GetData requests the data of a transaction
-func (c *ArweaveClient) GetData(txID string) (string, error) {
+func (c *Client) GetData(txID string) (string, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s/data", txID))
 	if err != nil {
 		return "", err
@@ -31,7 +31,7 @@ func (c *ArweaveClient) GetData(txID string) (string, error) {
 }
 
 // LastTransaction requests the last transaction of an account
-func (c *ArweaveClient) LastTransaction(address string) (string, error) {
+func (c *Client) LastTransaction(address string) (string, error) {
 	body, err := c.get(fmt.Sprintf("wallet/%s/last_tx", address))
 	if err != nil {
 		return "", err
@@ -40,7 +40,7 @@ func (c *ArweaveClient) LastTransaction(address string) (string, error) {
 }
 
 // GetTransaction requests the information of a transaction
-func (c *ArweaveClient) GetTransaction(txID string) (*JSONTransaction, error) {
+func (c *Client) GetTransaction(txID string) (*JSONTransaction, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s", txID))
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (c *ArweaveClient) GetTransaction(txID string) (*JSONTransaction, error) {
 }
 
 // GetTransaction requests the information of a transaction
-func (c *ArweaveClient) GetPendingTransactions() ([]string, error) {
+func (c *Client) GetPendingTransactions() ([]string, error) {
 	body, err := c.get(fmt.Sprintf("tx/pending"))
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (c *ArweaveClient) GetPendingTransactions() ([]string, error) {
 }
 
 // GetTransactionField requests the specific field of a specific transaction
-func (c *ArweaveClient) GetTransactionField(txID string, field string) (string, error) {
+func (c *Client) GetTransactionField(txID string, field string) (string, error) {
 	_, ok := allowedFields[field]
 	if !ok {
 		return "", errors.New("field does not exist")
@@ -82,7 +82,7 @@ func (c *ArweaveClient) GetTransactionField(txID string, field string) (string, 
 }
 
 // GetBlockByID requests a block by its id
-func (c *ArweaveClient) GetBlockByID(blockID string) (*Block, error) {
+func (c *Client) GetBlockByID(blockID string) (*Block, error) {
 	body, err := c.get(fmt.Sprintf("block/hash/%s", blockID))
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (c *ArweaveClient) GetBlockByID(blockID string) (*Block, error) {
 }
 
 // GetBlockByHeight requests a block by its height
-func (c *ArweaveClient) GetBlockByHeight(height int64) (*Block, error) {
+func (c *Client) GetBlockByHeight(height int64) (*Block, error) {
 	body, err := c.get(fmt.Sprintf("block/height/%d", height))
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (c *ArweaveClient) GetBlockByHeight(height int64) (*Block, error) {
 }
 
 // GetCurrentBlock requests the latest block of the weave
-func (c *ArweaveClient) GetCurrentBlock() (*Block, error) {
+func (c *Client) GetCurrentBlock() (*Block, error) {
 	body, err := c.get("current_block")
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (c *ArweaveClient) GetCurrentBlock() (*Block, error) {
 }
 
 // GetReward requests the current network reward
-func (c *ArweaveClient) GetReward(data []byte) (string, error) {
+func (c *Client) GetReward(data []byte) (string, error) {
 	body, err := c.get(fmt.Sprintf("price/%d", len(data)))
 	if err != nil {
 		return "", err
@@ -137,7 +137,7 @@ func (c *ArweaveClient) GetReward(data []byte) (string, error) {
 }
 
 // GetBalance requests the current balance of an address
-func (c *ArweaveClient) GetBalance(address string) (string, error) {
+func (c *Client) GetBalance(address string) (string, error) {
 	body, err := c.get(fmt.Sprintf("wallet/%s/balance", address))
 	if err != nil {
 		return "", err
@@ -147,7 +147,7 @@ func (c *ArweaveClient) GetBalance(address string) (string, error) {
 }
 
 // GetPeers requests the list of peers of a node
-func (c *ArweaveClient) GetPeers() ([]string, error) {
+func (c *Client) GetPeers() ([]string, error) {
 	body, err := c.get("peers")
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (c *ArweaveClient) GetPeers() ([]string, error) {
 }
 
 // GetInfo requests the information of a node
-func (c *ArweaveClient) GetInfo() (*NetworkInfo, error) {
+func (c *Client) GetInfo() (*NetworkInfo, error) {
 	body, err := c.get("info")
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (c *ArweaveClient) GetInfo() (*NetworkInfo, error) {
 }
 
 // Commit sends the serialized transaction to the arweave
-func (c *ArweaveClient) Commit(data []byte) (string, error) {
+func (c *Client) Commit(data []byte) (string, error) {
 	body, err := c.post(context.TODO(), "tx", data)
 	if err != nil {
 		return "", err
@@ -182,7 +182,7 @@ func (c *ArweaveClient) Commit(data []byte) (string, error) {
 	return string(body), nil
 }
 
-func (c *ArweaveClient) get(endpoint string) ([]byte, error) {
+func (c *Client) get(endpoint string) ([]byte, error) {
 	resp, err := c.client.Get(fmt.Sprintf("%s/%s", c.url, endpoint))
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func (c *ArweaveClient) get(endpoint string) ([]byte, error) {
 	return b, err
 }
 
-func (c *ArweaveClient) post(ctx context.Context, endpoint string, body []byte) ([]byte, error) {
+func (c *Client) post(ctx context.Context, endpoint string, body []byte) ([]byte, error) {
 	r := bytes.NewReader(body)
 	resp, err := c.client.Post(fmt.Sprintf("%s/%s", c.url, endpoint), "application/json", r)
 	if err != nil {

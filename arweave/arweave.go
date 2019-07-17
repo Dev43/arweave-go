@@ -15,9 +15,9 @@ const DefaultURL = "http://127.0.0.1:1984"
 // DefaultPort of the arweave client
 const DefaultPort = "1984"
 
-// NewArweaveClient creates a new arweave client. You need to pass in a context and a url
+// NewClient creates a new arweave client. You need to pass in a context and a url
 // If sending an empty string, the default url is localhosts
-func NewArweaveClient(fullUrl string) (*ArweaveClient, error) {
+func NewClient(fullUrl string) (*Client, error) {
 	furl := fullUrl
 	if furl == "" {
 		return Dial(DefaultURL)
@@ -37,7 +37,7 @@ func NewArweaveClient(fullUrl string) (*ArweaveClient, error) {
 }
 
 // CreateTransaction creates a brand new transaction
-func (c *ArweaveClient) CreateTransaction(w *Wallet, amount string, data string, target string) (*Transaction, error) {
+func (c *Client) CreateTransaction(w *Wallet, amount string, data string, target string) (*Transaction, error) {
 	lastTx, err := c.LastTransaction(w.Address())
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *ArweaveClient) CreateTransaction(w *Wallet, amount string, data string,
 
 // SendTransaction formats the transactions (base64url encodes the necessary fields)
 // marshalls the Json and sends it to the arweave network
-func (c *ArweaveClient) SendTransaction(tx *Transaction) (string, error) {
+func (c *Client) SendTransaction(tx *Transaction) (string, error) {
 	if len(tx.signature) == 0 {
 		return "", errors.New("transaction missing signature")
 	}
