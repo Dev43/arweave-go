@@ -1,15 +1,3 @@
-# Arweave Go SDK
-
-
-[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Dev43/arweave-go/blob/master/LICENSE.md)
-[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/Dev43/arweave-go/arweave)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Dev43/arweave-go)](https://goreportcard.com/report/github.com/Dev43/arweave-go)
-
-Golang SDK for the Arweave client.
-
-Example of use:
-
-```golang
 package main
 
 import (
@@ -59,5 +47,3 @@ func main() {
 	}
 	fmt.Println(pendingTx)
 }
-
-```

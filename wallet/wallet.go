@@ -1,4 +1,4 @@
-package arweave
+package wallet
 
 import (
 	"crypto"
@@ -22,7 +22,7 @@ type Wallet struct {
 	address   string
 	key       *gojwk.Key
 	publicKey string
-	pubKey    *rsa.PublicKey
+	PubKey    *rsa.PublicKey
 }
 
 // Address returns the address of the account
@@ -88,7 +88,7 @@ func (w *Wallet) ExtractKey(fileName string) error {
 	if !ok {
 		return fmt.Errorf("could not typecast key to %T", rsa.PublicKey{})
 	}
-	w.pubKey = pubKey
+	w.PubKey = pubKey
 	// Take the "n", in bytes and hash it using SHA256
 	h := sha256.New()
 	h.Write(pubKey.N.Bytes())

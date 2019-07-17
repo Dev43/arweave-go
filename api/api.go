@@ -1,4 +1,4 @@
-package arweave
+package api
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/Dev43/arweave-go/tx"
 )
 
 // Client struct
@@ -40,12 +42,12 @@ func (c *Client) LastTransaction(address string) (string, error) {
 }
 
 // GetTransaction requests the information of a transaction
-func (c *Client) GetTransaction(txID string) (*JSONTransaction, error) {
+func (c *Client) GetTransaction(txID string) (*tx.JSONTransaction, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s", txID))
 	if err != nil {
 		return nil, err
 	}
-	tx := JSONTransaction{}
+	tx := tx.JSONTransaction{}
 	err = json.Unmarshal(body, &tx)
 	if err != nil {
 		return nil, err
