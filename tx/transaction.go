@@ -9,7 +9,7 @@ import (
 	"github.com/Dev43/arweave-go/wallet"
 )
 
-func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data string, reward string, tags []map[string]interface{}) *Transaction {
+func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *Transaction {
 	return &Transaction{
 		lastTx:   lastTx,
 		owner:    owner,
@@ -22,7 +22,7 @@ func NewTransaction(lastTx string, owner *big.Int, quantity string, target strin
 }
 
 // Data returns the data of the transaction
-func (t *Transaction) Data() string {
+func (t *Transaction) Data() []byte {
 	return t.data
 }
 
@@ -139,7 +139,7 @@ func (t *Transaction) Format() *JSONTransaction {
 		Tags:      t.tags,
 		Target:    (t.target),
 		Quantity:  t.quantity,
-		Data:      base64.RawURLEncoding.EncodeToString([]byte(t.Data())),
+		Data:      base64.RawURLEncoding.EncodeToString(t.Data()),
 		Reward:    t.reward,
 		Signature: base64.RawURLEncoding.EncodeToString(t.signature),
 	}

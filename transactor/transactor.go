@@ -55,7 +55,7 @@ func NewTransactor(fullUrl string) (*Transactor, error) {
 }
 
 // CreateTransaction creates a brand new transaction
-func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data string, target string) (*tx.Transaction, error) {
+func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []byte, target string) (*tx.Transaction, error) {
 	lastTx, err := tr.Client.LastTransaction(w.Address())
 	if err != nil {
 		return nil, err

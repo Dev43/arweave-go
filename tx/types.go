@@ -9,7 +9,7 @@ type Transaction struct {
 	owner     *big.Int                 // The modulus of the RSA key pair corresponding to the wallet making the transaction
 	target    string                   // If making a financial transaction this field contains the wallet address of the recipient base64url encoded. If the transaction is not a financial this field is set to an empty string.
 	quantity  string                   // If making a financial transaction this field contains the amount in Winston to be sent to the receiving wallet. If the transaction is not financial this field is set to the string "0". 1 AR = 1000000000000 (1e+12) Winston
-	data      string                   // If making an archiving transaction this field contains the data to be archived base64url encoded. If the transaction is not archival this field is set to an empty string.
+	data      []byte                   // If making an archiving transaction this field contains the data to be archived base64url encoded. If the transaction is not archival this field is set to an empty string.
 	reward    string                   // This field contains the mining reward for the transaction in Winston.
 	tags      []map[string]interface{} // Transaction tags
 	signature []byte                   // Signature using the RSA-PSS signature scheme using SHA256 as the MGF1 masking algorithm
