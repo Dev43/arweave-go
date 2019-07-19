@@ -9,8 +9,8 @@ import (
 	"github.com/Dev43/arweave-go/wallet"
 )
 
-func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *Transaction {
-	return &Transaction{
+func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *TransactionBuilder {
+	return &TransactionBuilder{
 		lastTx:   lastTx,
 		owner:    owner,
 		quantity: quantity,
@@ -22,59 +22,59 @@ func NewTransaction(lastTx string, owner *big.Int, quantity string, target strin
 }
 
 // Data returns the data of the transaction
-func (t *Transaction) Data() []byte {
+func (t *TransactionBuilder) Data() []byte {
 	return t.data
 }
 
 // LastTx returns the last transaction of the account
-func (t *Transaction) LastTx() string {
+func (t *TransactionBuilder) LastTx() string {
 	return t.lastTx
 }
 
 // Owner returns the Owner of the transaction
-func (t *Transaction) Owner() []byte {
+func (t *TransactionBuilder) Owner() []byte {
 	return t.owner.Bytes()
 }
 
 // Quantity returns the quantity of the transaction
-func (t *Transaction) Quantity() string {
+func (t *TransactionBuilder) Quantity() string {
 	return t.quantity
 }
 
 // Reward returns the reward of the transaction
-func (t *Transaction) Reward() string {
+func (t *TransactionBuilder) Reward() string {
 	return t.reward
 }
 
 // Target returns the target of the transaction
-func (t *Transaction) Target() string {
+func (t *TransactionBuilder) Target() string {
 	return t.target
 }
 
 // Id returns the id of the transaction which is the SHA256 of the signature
-func (t *Transaction) Id() [32]byte {
+func (t *TransactionBuilder) Id() [32]byte {
 	return t.id
 }
 
 // EncodedID returns the base64 RawURLEncoding of the transaction ID
-func (t *Transaction) EncodedID() string {
+func (t *TransactionBuilder) EncodedID() string {
 	return base64.RawURLEncoding.EncodeToString(t.id[:])
 }
 
 // Tags returns the tags of the transaction
-func (t *Transaction) Tags() []map[string]interface{} {
+func (t *TransactionBuilder) Tags() []map[string]interface{} {
 	return t.tags
 }
 
 // Tags returns the tags of the transaction
-func (t *Transaction) Signature() []byte {
+func (t *TransactionBuilder) Signature() []byte {
 	return t.signature
 }
 
 // Sign creates the signing message, and signs it using the private key,
 // It takes the SHA256 of the resulting signature to calculate the id of
 // the signature
-func (t *Transaction) Sign(w *wallet.Wallet) error {
+func (t *TransactionBuilder) Sign(w *wallet.Wallet) error {
 	// format the message
 	payload, err := t.formatMsgBytes()
 	if err != nil {
@@ -109,7 +109,7 @@ func (t *Transaction) Sign(w *wallet.Wallet) error {
 // need to be an array of bytes originating from the necessary data (not base64url encoded).
 // The signing message is the SHA256 of the concatenation of the byte arrays
 // of the owner public key, target address, data, quantity, reward and last transaction
-func (t *Transaction) formatMsgBytes() ([]byte, error) {
+func (t *TransactionBuilder) formatMsgBytes() ([]byte, error) {
 	var msg []byte
 	lastTx, err := base64.RawURLEncoding.DecodeString(t.LastTx())
 	if err != nil {
@@ -131,8 +131,8 @@ func (t *Transaction) formatMsgBytes() ([]byte, error) {
 }
 
 // Format formats the transactions to a JSONTransaction that can be sent out to an arweave node
-func (t *Transaction) Format() *JSONTransaction {
-	return &JSONTransaction{
+func (t *TransactionBuilder) Format() *Transaction {
+	return &Transaction{
 		ID:        base64.RawURLEncoding.EncodeToString(t.id[:]),
 		LastTx:    (t.lastTx),
 		Owner:     base64.RawURLEncoding.EncodeToString([]byte(t.owner.Bytes())),

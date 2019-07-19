@@ -42,7 +42,7 @@ func (c *Client) LastTransaction(address string) (string, error) {
 }
 
 // GetTransaction requests the information of a transaction
-func (c *Client) GetTransaction(txID string) (*tx.JSONTransaction, error) {
+func (c *Client) GetTransaction(txID string) (*tx.Transaction, error) {
 	body, err := c.get(fmt.Sprintf("tx/%s", txID))
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (c *Client) GetTransaction(txID string) (*tx.JSONTransaction, error) {
 	if string(body) == "Pending" {
 		return nil, nil
 	}
-	tx := tx.JSONTransaction{}
+	tx := tx.Transaction{}
 	err = json.Unmarshal(body, &tx)
 	if err != nil {
 		return nil, err

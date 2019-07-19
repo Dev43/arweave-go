@@ -55,7 +55,7 @@ func NewTransactor(fullUrl string) (*Transactor, error) {
 }
 
 // CreateTransaction creates a brand new transaction
-func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []byte, target string) (*tx.Transaction, error) {
+func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []byte, target string) (*tx.TransactionBuilder, error) {
 	lastTx, err := tr.Client.LastTransaction(w.Address())
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []
 
 // SendTransaction formats the transactions (base64url encodes the necessary fields)
 // marshalls the Json and sends it to the arweave network
-func (tr *Transactor) SendTransaction(tx *tx.Transaction) (string, error) {
+func (tr *Transactor) SendTransaction(tx *tx.TransactionBuilder) (string, error) {
 	if len(tx.Signature()) == 0 {
 		return "", errors.New("transaction missing signature")
 	}
@@ -93,7 +93,7 @@ func (tr *Transactor) SendTransaction(tx *tx.Transaction) (string, error) {
 	return tr.Client.Commit(serialized)
 }
 
-func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.Transaction) (*tx.JSONTransaction, error) {
+func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.TransactionBuilder) (*tx.Transaction, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 

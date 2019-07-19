@@ -3,7 +3,7 @@ package tx
 import "math/big"
 
 // Transaction struct
-type Transaction struct {
+type TransactionBuilder struct {
 	id        [32]byte                 // A SHA2-256 hash of the signature
 	lastTx    string                   // The ID of the last transaction made from the account. If no previous transactions have been made from the address this field is set to an empty string.
 	owner     *big.Int                 // The modulus of the RSA key pair corresponding to the wallet making the transaction
@@ -15,8 +15,8 @@ type Transaction struct {
 	signature []byte                   // Signature using the RSA-PSS signature scheme using SHA256 as the MGF1 masking algorithm
 }
 
-// JSONTransaction encoded transaction to send to the arweave client
-type JSONTransaction struct {
+// Transaction encoded transaction to send to the arweave client
+type Transaction struct {
 	// Id A SHA2-256 hash of the signature, based 64 URL encoded.
 	ID string `json:"id"`
 	// LastTx represents the ID of the last transaction made from the same address base64url encoded. If no previous transactions have been made from the address this field is set to an empty string.
