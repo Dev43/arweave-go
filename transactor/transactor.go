@@ -93,12 +93,12 @@ func (tr *Transactor) SendTransaction(tx *tx.TransactionBuilder) (string, error)
 	return tr.Client.Commit(serialized)
 }
 
-func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.TransactionBuilder) (*tx.Transaction, error) {
+func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.Transaction) (*tx.Transaction, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
-		receipt, err := tr.Client.GetTransaction(tx.EncodedID())
+		receipt, err := tr.Client.GetTransaction(tx.ID)
 		if receipt != nil {
 			return receipt, nil
 		}
