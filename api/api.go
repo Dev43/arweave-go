@@ -47,6 +47,10 @@ func (c *Client) GetTransaction(txID string) (*tx.JSONTransaction, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If it sends us a pending message, return a nil receipt and error
+	if string(body) == "Pending" {
+		return nil, nil
+	}
 	tx := tx.JSONTransaction{}
 	err = json.Unmarshal(body, &tx)
 	if err != nil {
@@ -196,10 +200,10 @@ func (c *Client) get(endpoint string) ([]byte, error) {
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, errors.New("not found")
-	} else if resp.StatusCode != http.StatusOK {
+	} else if resp.StatusCode > http.StatusAccepted {
 		return nil, fmt.Errorf("api error with body %s", string(b))
 	}
-	return b, err
+	return b, nil
 }
 
 func (c *Client) post(ctx context.Context, endpoint string, body []byte) ([]byte, error) {

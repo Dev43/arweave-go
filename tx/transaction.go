@@ -56,6 +56,11 @@ func (t *Transaction) Id() [32]byte {
 	return t.id
 }
 
+// EncodedID returns the base64 RawURLEncoding of the transaction ID
+func (t *Transaction) EncodedID() string {
+	return base64.RawURLEncoding.EncodeToString(t.id[:])
+}
+
 // Tags returns the tags of the transaction
 func (t *Transaction) Tags() []map[string]interface{} {
 	return t.tags

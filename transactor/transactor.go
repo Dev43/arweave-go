@@ -1,10 +1,12 @@
 package transactor
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/Dev43/arweave-go/api"
 	"github.com/Dev43/arweave-go/tx"
@@ -58,6 +60,7 @@ func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data st
 	if err != nil {
 		return nil, err
 	}
+
 	price, err := tr.Client.GetReward([]byte(data))
 	if err != nil {
 		return nil, err
@@ -88,4 +91,26 @@ func (tr *Transactor) SendTransaction(tx *tx.Transaction) (string, error) {
 		return "", err
 	}
 	return tr.Client.Commit(serialized)
+}
+
+func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.Transaction) (*tx.JSONTransaction, error) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		receipt, err := tr.Client.GetTransaction(tx.EncodedID())
+		if receipt != nil {
+			return receipt, nil
+		}
+		if err != nil {
+			fmt.Printf("Error retrieving transaction %s \n", err.Error())
+		} else {
+			fmt.Printf("Transaction not yet mined \n")
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+		}
+	}
 }
