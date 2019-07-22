@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 
 	"github.com/mendsley/gojwk"
 )
@@ -22,7 +23,7 @@ type Wallet struct {
 	address   string
 	key       *gojwk.Key
 	publicKey string
-	PubKey    *rsa.PublicKey
+	pubKey    *rsa.PublicKey
 }
 
 // NewWallet creates a new wallet instance
@@ -33,6 +34,11 @@ func NewWallet() *Wallet {
 // Address returns the address of the account
 func (w *Wallet) Address() string {
 	return w.address
+}
+
+// PubKeyModulus returns the modulus of the RSA public key
+func (w *Wallet) PubKeyModulus() *big.Int {
+	return w.pubKey.N
 }
 
 // Sign signs a message using the RSA-PSS scheme with an MGF SHA256 masking function
@@ -93,7 +99,7 @@ func (w *Wallet) ExtractKey(path string) error {
 	if !ok {
 		return fmt.Errorf("could not typecast key to %T", rsa.PublicKey{})
 	}
-	w.PubKey = pubKey
+	w.pubKey = pubKey
 	// Take the "n", in bytes and hash it using SHA256
 	h := sha256.New()
 	h.Write(pubKey.N.Bytes())

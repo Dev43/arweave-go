@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Dev43/arweave-go"
 	"github.com/Dev43/arweave-go/api"
 	"github.com/Dev43/arweave-go/tx"
-	"github.com/Dev43/arweave-go/wallet"
 )
 
 // defaultPort of the arweave client
@@ -60,7 +60,7 @@ func NewTransactor(fullURL string) (*Transactor, error) {
 }
 
 // CreateTransaction creates a brand new transaction
-func (tr *Transactor) CreateTransaction(ctx context.Context, w *wallet.Wallet, amount string, data []byte, target string) (*tx.Transaction, error) {
+func (tr *Transactor) CreateTransaction(ctx context.Context, w arweave.WalletSigner, amount string, data []byte, target string) (*tx.Transaction, error) {
 	lastTx, err := tr.Client.LastTransaction(ctx, w.Address())
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (tr *Transactor) CreateTransaction(ctx context.Context, w *wallet.Wallet, a
 	// Non encoded transaction fields
 	tx := tx.NewTransaction(
 		lastTx,
-		w.PubKey.N,
+		w.PubKeyModulus(),
 		amount,
 		target,
 		data,
