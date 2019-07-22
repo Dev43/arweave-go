@@ -10,18 +10,8 @@ Golang SDK for the Arweave client.
 Example of use:
 
 ```golang
-package main
 
-import (
-    "fmt"
-    "log"
-
-    "github.com/Dev43/arweave-go/transactor"
-    "github.com/Dev43/arweave-go/wallet"
-)
-
-func main() {
-    // create a new arweave client
+	// create a new arweave client
     ar, err := transactor.NewTransactor("209.97.142.169")
     if err != nil {
         log.Fatal(err)
@@ -60,7 +50,5 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(pendingTx)
-
-}
 
 ```
