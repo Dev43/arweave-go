@@ -1,4 +1,4 @@
-package transactor
+package transactor_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/Dev43/arweave-go/transactor"
 	"github.com/Dev43/arweave-go/tx"
 	"github.com/stretchr/testify/assert"
 )
@@ -88,7 +89,7 @@ func TestCreateTransaction(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		tr := Transactor{Client: c.caller}
+		tr := transactor.Transactor{Client: c.caller}
 		tx, err := tr.CreateTransaction(ctx, c.wallet, c.quantity, c.data, c.target)
 		if err != nil {
 			t.Fatal(err)
