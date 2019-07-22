@@ -4,10 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-
 	"math/big"
+	"github.com/Dev43/arweave-go"
 
-	"github.com/Dev43/arweave-go/wallet"
 )
 
 func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *Transaction {
@@ -75,7 +74,7 @@ func (t *Transaction) Signature() string {
 // Sign creates the signing message, and signs it using the private key,
 // It takes the SHA256 of the resulting signature to calculate the id of
 // the signature
-func (t *Transaction) Sign(w *wallet.Wallet) (*Transaction, error) {
+func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	// format the message
 	payload, err := t.formatMsgBytes()
 	if err != nil {
