@@ -25,6 +25,11 @@ type Wallet struct {
 	PubKey    *rsa.PublicKey
 }
 
+// NewWallet creates a new wallet instance
+func NewWallet() *Wallet {
+	return &Wallet{}
+}
+
 // Address returns the address of the account
 func (w *Wallet) Address() string {
 	return w.address
@@ -69,9 +74,9 @@ func (w *Wallet) Verify(msg []byte, sig []byte) error {
 
 // ExtractKey extracts the necessary information from the arweave key file.
 // It assumes the arweave key file is unencrypted.
-func (w *Wallet) ExtractKey(fileName string) error {
+func (w *Wallet) ExtractKey(path string) error {
 
-	b, err := ioutil.ReadFile(fileName)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -99,9 +104,4 @@ func (w *Wallet) ExtractKey(fileName string) error {
 	w.key = key
 
 	return nil
-}
-
-// NewWallet creates a new wallet instance
-func NewWallet() *Wallet {
-	return &Wallet{}
 }
