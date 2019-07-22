@@ -1,13 +1,13 @@
-package transactor_test
+package transactor
 
 import (
 	"context"
-	"encoding/base64"
 	"math/big"
 	"testing"
 
 	"github.com/Dev43/arweave-go/transactor"
 	"github.com/Dev43/arweave-go/tx"
+	"github.com/Dev43/arweave-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,10 +57,6 @@ func (w *mockWallet) PubKeyModulus() *big.Int {
 	return w.TestPubKeyModulus
 }
 
-func encodeToBase64(toEncode []byte) string {
-	return base64.RawURLEncoding.EncodeToString(toEncode)
-}
-
 func TestCreateTransaction(t *testing.T) {
 
 	cases := []struct {
@@ -99,8 +95,8 @@ func TestCreateTransaction(t *testing.T) {
 		assert.Equal(t, c.tag, tx.Tags(), "tags field does not match")
 		assert.Equal(t, c.caller.LastTx, tx.LastTx(), "last tx field does not match")
 		assert.Equal(t, c.caller.Reward, tx.Reward(), "reward field does not match")
-		assert.Equal(t, encodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
-		assert.Equal(t, encodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
+		assert.Equal(t, utils.EncodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
+		assert.Equal(t, utils.EncodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
 	}
 
 }

@@ -5,11 +5,11 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 
+	"github.com/Dev43/arweave-go/utils"
 	"github.com/mendsley/gojwk"
 )
 
@@ -78,15 +78,19 @@ func (w *Wallet) Verify(msg []byte, sig []byte) error {
 	return nil
 }
 
-// ExtractKey extracts the necessary information from the arweave key file.
-// It assumes the arweave key file is unencrypted.
-func (w *Wallet) ExtractKey(path string) error {
-
+// LoadKeyFromFile loads and Arweave RSA key from a file to our wallet
+func (w *Wallet) LoadKeyFromFile(path string) error {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	key, err := gojwk.Unmarshal(b)
+	return w.LoadKey(b)
+}
+
+// LoadKey loads an Arweave RSA key into our wallet
+func (w *Wallet) LoadKey(rsaKeyBytes []byte) error {
+
+	key, err := gojwk.Unmarshal(rsaKeyBytes)
 	if err != nil {
 		return err
 	}
@@ -105,8 +109,8 @@ func (w *Wallet) ExtractKey(path string) error {
 	h.Write(pubKey.N.Bytes())
 
 	// Finally base64url encode it to have the resulting address
-	w.address = base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	w.publicKey = base64.RawURLEncoding.EncodeToString(pubKey.N.Bytes())
+	w.address = utils.EncodeToBase64(h.Sum(nil))
+	w.publicKey = utils.EncodeToBase64(pubKey.N.Bytes())
 	w.key = key
 
 	return nil

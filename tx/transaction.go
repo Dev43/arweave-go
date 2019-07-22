@@ -2,11 +2,11 @@ package tx
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"math/big"
 
 	"github.com/Dev43/arweave-go"
+	"github.com/Dev43/arweave-go/utils"
 )
 
 // NewTransaction creates a brand new transaction struct
@@ -24,7 +24,7 @@ func NewTransaction(lastTx string, owner *big.Int, quantity string, target strin
 
 // Data returns the data of the transaction
 func (t *Transaction) Data() string {
-	return base64.RawURLEncoding.EncodeToString(t.data)
+	return utils.EncodeToBase64(t.data)
 }
 
 // LastTx returns the last transaction of the account
@@ -34,7 +34,7 @@ func (t *Transaction) LastTx() string {
 
 // Owner returns the Owner of the transaction
 func (t *Transaction) Owner() string {
-	return base64.RawURLEncoding.EncodeToString(t.owner.Bytes())
+	return utils.EncodeToBase64(t.owner.Bytes())
 }
 
 // Quantity returns the quantity of the transaction
@@ -59,7 +59,7 @@ func (t *Transaction) ID() [32]byte {
 
 // Hash returns the base64 RawURLEncoding of the transaction hash
 func (t *Transaction) Hash() string {
-	return base64.RawURLEncoding.EncodeToString(t.id[:])
+	return utils.EncodeToBase64(t.id[:])
 }
 
 // Tags returns the tags of the transaction
@@ -69,7 +69,7 @@ func (t *Transaction) Tags() []map[string]interface{} {
 
 // Signature returns the signature of the transaction
 func (t *Transaction) Signature() string {
-	return base64.RawURLEncoding.EncodeToString(t.signature)
+	return utils.EncodeToBase64(t.signature)
 }
 
 // Sign creates the signing message, and signs it using the private key,
@@ -111,11 +111,11 @@ func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 // of the owner public key, target address, data, quantity, reward and last transaction
 func (t *Transaction) formatMsgBytes() ([]byte, error) {
 	var msg []byte
-	lastTx, err := base64.RawURLEncoding.DecodeString(t.LastTx())
+	lastTx, err := utils.DecodeString(t.LastTx())
 	if err != nil {
 		return nil, err
 	}
-	target, err := base64.RawURLEncoding.DecodeString(t.Target())
+	target, err := utils.DecodeString(t.Target())
 	if err != nil {
 		return nil, err
 	}
@@ -133,15 +133,15 @@ func (t *Transaction) formatMsgBytes() ([]byte, error) {
 // Format formats the transactions to a JSONTransaction that can be sent out to an arweave node
 func (t *Transaction) format() *transactionJSON {
 	return &transactionJSON{
-		ID:        base64.RawURLEncoding.EncodeToString(t.id[:]),
+		ID:        utils.EncodeToBase64(t.id[:]),
 		LastTx:    t.lastTx,
-		Owner:     base64.RawURLEncoding.EncodeToString(t.owner.Bytes()),
+		Owner:     utils.EncodeToBase64(t.owner.Bytes()),
 		Tags:      t.tags,
 		Target:    t.target,
 		Quantity:  t.quantity,
-		Data:      base64.RawURLEncoding.EncodeToString(t.data),
+		Data:      utils.EncodeToBase64(t.data),
 		Reward:    t.reward,
-		Signature: base64.RawURLEncoding.EncodeToString(t.signature),
+		Signature: utils.EncodeToBase64(t.signature),
 	}
 }
 
@@ -157,7 +157,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	if err != nil {
 		return err
 	}
-	id, err := base64.RawURLEncoding.DecodeString(txn.ID)
+	id, err := utils.DecodeString(txn.ID)
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	t.lastTx = txn.LastTx
 
 	// gives me byte representation of the big num
-	owner, err := base64.RawURLEncoding.DecodeString(txn.Owner)
+	owner, err := utils.DecodeString(txn.Owner)
 	if err != nil {
 		return err
 	}
@@ -179,14 +179,14 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	t.target = txn.Target
 	t.quantity = txn.Quantity
 
-	data, err := base64.RawURLEncoding.DecodeString(txn.Data)
+	data, err := utils.DecodeString(txn.Data)
 	if err != nil {
 		return err
 	}
 	t.data = data
 	t.reward = txn.Reward
 
-	sig, err := base64.RawURLEncoding.DecodeString(txn.Signature)
+	sig, err := utils.DecodeString(txn.Signature)
 	if err != nil {
 		return err
 	}
