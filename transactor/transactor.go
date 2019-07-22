@@ -13,11 +13,11 @@ import (
 	"github.com/Dev43/arweave-go/wallet"
 )
 
-// defaultURL is the local host url
-const defaultURL = "http://127.0.0.1:1984"
-
 // defaultPort of the arweave client
 const defaultPort = "1984"
+
+// defaultURL is the local host url
+const defaultURL = "http://127.0.0.1" + ":" + defaultPort
 
 // Transactor type, allows one to create transactions
 type Transactor struct {
@@ -26,8 +26,8 @@ type Transactor struct {
 
 // NewTransactor creates a new arweave transactor. You need to pass in a context and a url
 // If sending an empty string, the default url is localhosts
-func NewTransactor(fullUrl string) (*Transactor, error) {
-	if fullUrl == "" {
+func NewTransactor(fullURL string) (*Transactor, error) {
+	if fullURL == "" {
 		c, err := api.Dial(defaultURL)
 		if err != nil {
 			return nil, err
@@ -36,16 +36,13 @@ func NewTransactor(fullUrl string) (*Transactor, error) {
 			Client: c,
 		}, nil
 	}
-	u, err := url.Parse(fullUrl)
+	u, err := url.Parse(fullURL)
 	if err != nil {
 		return nil, err
 	}
-	formattedURL := fullUrl
-	if u.Port() == "" {
-		formattedURL = fmt.Sprintf("%s:%s", fullUrl, defaultPort)
-	}
+	formattedURL := fullURL
 	if u.Scheme == "" {
-		formattedURL = fmt.Sprintf("http://%s", formattedURL)
+		formattedURL = fmt.Sprintf("http://%s:%s", formattedURL, defaultPort)
 	}
 	c, err := api.Dial(formattedURL)
 
@@ -55,13 +52,13 @@ func NewTransactor(fullUrl string) (*Transactor, error) {
 }
 
 // CreateTransaction creates a brand new transaction
-func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []byte, target string) (*tx.TransactionBuilder, error) {
-	lastTx, err := tr.Client.LastTransaction(w.Address())
+func (tr *Transactor) CreateTransaction(ctx context.Context, w *wallet.Wallet, amount string, data []byte, target string) (*tx.Transaction, error) {
+	lastTx, err := tr.Client.LastTransaction(ctx, w.Address())
 	if err != nil {
 		return nil, err
 	}
 
-	price, err := tr.Client.GetReward([]byte(data))
+	price, err := tr.Client.GetReward(ctx, []byte(data))
 	if err != nil {
 		return nil, err
 	}
@@ -81,24 +78,24 @@ func (tr *Transactor) CreateTransaction(w *wallet.Wallet, amount string, data []
 
 // SendTransaction formats the transactions (base64url encodes the necessary fields)
 // marshalls the Json and sends it to the arweave network
-func (tr *Transactor) SendTransaction(tx *tx.TransactionBuilder) (string, error) {
+func (tr *Transactor) SendTransaction(ctx context.Context, tx *tx.Transaction) (string, error) {
 	if len(tx.Signature()) == 0 {
 		return "", errors.New("transaction missing signature")
 	}
-	txn := tx.Format()
-	serialized, err := json.Marshal(txn)
+	serialized, err := json.Marshal(tx)
 	if err != nil {
 		return "", err
 	}
-	return tr.Client.Commit(serialized)
+	return tr.Client.Commit(ctx, serialized)
 }
 
+// WaitMined waits for the transaction to be mined
 func (tr *Transactor) WaitMined(ctx context.Context, tx *tx.Transaction) (*tx.Transaction, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
-		receipt, err := tr.Client.GetTransaction(tx.ID)
+		receipt, err := tr.Client.GetTransaction(ctx, tx.Hash())
 		if receipt != nil {
 			return receipt, nil
 		}
