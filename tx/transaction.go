@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"math/big"
-	"github.com/Dev43/arweave-go"
 
+	"github.com/Dev43/arweave-go"
 )
 
+// NewTransaction creates a brand new transaction struct
 func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *Transaction {
 	return &Transaction{
 		lastTx:   lastTx,

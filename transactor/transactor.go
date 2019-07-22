@@ -19,9 +19,17 @@ const defaultPort = "1984"
 // defaultURL is the local host url
 const defaultURL = "http://127.0.0.1" + ":" + defaultPort
 
+// ClientCaller is the base interface needed to create a Transactor
+type ClientCaller interface {
+	LastTransaction(ctx context.Context, address string) (string, error)
+	GetReward(ctx context.Context, data []byte) (string, error)
+	Commit(ctx context.Context, data []byte) (string, error)
+	GetTransaction(ctx context.Context, txID string) (*tx.Transaction, error)
+}
+
 // Transactor type, allows one to create transactions
 type Transactor struct {
-	Client *api.Client
+	Client ClientCaller
 }
 
 // NewTransactor creates a new arweave transactor. You need to pass in a context and a url
