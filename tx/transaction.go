@@ -27,6 +27,11 @@ func (t *Transaction) Data() string {
 	return utils.EncodeToBase64(t.data)
 }
 
+// SetTags sets the tags for the transaction
+func (t *Transaction) SetTags(tags []map[string]interface{}) {
+	t.tags = tags
+}
+
 // RawData returns the unencoded data
 func (t *Transaction) RawData() []byte {
 	return t.data
