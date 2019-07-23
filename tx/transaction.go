@@ -27,6 +27,11 @@ func (t *Transaction) Data() string {
 	return utils.EncodeToBase64(t.data)
 }
 
+// RawData returns the unencoded data
+func (t *Transaction) RawData() []byte {
+	return t.data
+}
+
 // LastTx returns the last transaction of the account
 func (t *Transaction) LastTx() string {
 	return t.lastTx
