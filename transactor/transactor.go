@@ -53,6 +53,9 @@ func NewTransactor(fullURL string) (*Transactor, error) {
 		formattedURL = fmt.Sprintf("http://%s:%s", formattedURL, defaultPort)
 	}
 	c, err := api.Dial(formattedURL)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Transactor{
 		Client: c,
