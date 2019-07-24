@@ -18,18 +18,13 @@ func NewTransaction(lastTx string, owner *big.Int, quantity string, target strin
 		target:   target,
 		data:     data,
 		reward:   reward,
-		tags:     make([]map[string]interface{}, 0),
+		tags:     tags,
 	}
 }
 
 // Data returns the data of the transaction
 func (t *Transaction) Data() string {
 	return utils.EncodeToBase64(t.data)
-}
-
-// SetTags sets the tags for the transaction
-func (t *Transaction) SetTags(tags []map[string]interface{}) {
-	t.tags = tags
 }
 
 // RawData returns the unencoded data
@@ -63,7 +58,7 @@ func (t *Transaction) Target() string {
 }
 
 // ID returns the id of the transaction which is the SHA256 of the signature
-func (t *Transaction) ID() [32]byte {
+func (t *Transaction) ID() []byte {
 	return t.id
 }
 
@@ -75,6 +70,15 @@ func (t *Transaction) Hash() string {
 // Tags returns the tags of the transaction
 func (t *Transaction) Tags() []map[string]interface{} {
 	return t.tags
+}
+
+// SetTags sets the tags for the transaction
+func (t *Transaction) SetTags(tags []map[string]interface{}) {
+	t.tags = tags
+}
+
+func (t *Transaction) SetID(id []byte) {
+	t.id = id
 }
 
 // Signature returns the signature of the transaction
@@ -105,12 +109,14 @@ func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	}
 
 	id := sha256.Sum256((sig))
+	var idB []byte
+	copy(idB, id[:])
 
 	// we copy t into tx
 	tx := Transaction(*t)
 	// add the signature and ID to our new signature struct
 	tx.signature = sig
-	tx.id = id
+	tx.SetID(idB)
 
 	return &tx, nil
 }
@@ -171,9 +177,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	if err != nil {
 		return err
 	}
-	var id32 [32]byte
-	copy(id32[:], id)
-	t.id = id32
+	t.id = id
 
 	t.lastTx = txn.LastTx
 

@@ -4,7 +4,7 @@ import "math/big"
 
 // Transaction struct
 type Transaction struct {
-	id        [32]byte                 // A SHA2-256 hash of the signature
+	id        []byte                   // A SHA2-256 hash of the signature
 	lastTx    string                   // The ID of the last transaction made from the account. If no previous transactions have been made from the address this field is set to an empty string.
 	owner     *big.Int                 // The modulus of the RSA key pair corresponding to the wallet making the transaction
 	target    string                   // If making a financial transaction this field contains the wallet address of the recipient base64url encoded. If the transaction is not a financial this field is set to an empty string.

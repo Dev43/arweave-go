@@ -95,7 +95,6 @@ func TestCreateTransaction(t *testing.T) {
 		assert.Equal(t, c.caller.LastTx, tx.LastTx(), "last tx field does not match")
 		assert.Equal(t, c.caller.Reward, tx.Reward(), "reward field does not match")
 		assert.Equal(t, utils.EncodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
-		assert.Equal(t, utils.EncodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
 	}
 
 }
