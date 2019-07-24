@@ -1,13 +1,11 @@
 package batcher
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"log"
-	"strings"
 	"testing"
 
-	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/tx"
 )
 
@@ -51,13 +49,6 @@ func sendTransaction(hash string) *tx.Transaction {
 }
 
 func TestGetAllChunks(t *testing.T) {
-	s := strings.NewReader("abc")
-	ch, err := chunker.NewChunker(s)
-	if err != nil {
-		log.Fatal(err)
-	}
-	ch.SetMaxChunkSize(3)
-
 	cases := []struct {
 		mockClient *mockArClient
 	}{
@@ -78,6 +69,40 @@ func TestGetAllChunks(t *testing.T) {
 		}
 		if len(chunks) != 3 {
 			t.Fatal(errors.New("invalid chunks lengths"))
+		}
+	}
+
+}
+
+func TestChunkRecombination(t *testing.T) {
+	cases := []struct {
+		mockClient *mockArClient
+	}{
+		{
+			&mockArClient{
+				TxErr: nil,
+				Tx:    sendTransaction,
+			},
+		},
+	}
+
+	for _, c := range cases {
+		bc := NewBatchCombiner(c.mockClient)
+
+		chunks, err := bc.GetAllChunks("0xc")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(chunks) != 3 {
+			t.Fatal(errors.New("invalid chunks lengths"))
+		}
+		b := bytes.NewBufferString("")
+		err = Recombine(chunks, b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if b.String() != "hihellothere" {
+			t.Fatal(errors.New("failed at recombining string"))
 		}
 	}
 
