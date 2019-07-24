@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/transactor"
@@ -40,7 +41,7 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Chunk,
 	}
 	chunks := []chunker.Chunk{}
 	chunks = append(chunks, chunk)
-	return bc.GetChunk(chunkInfo.PreviousChunk, chunks)
+	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
 func getChunkInfoFromTag(tags []map[string]interface{}) (*ChunkerInformation, error) {
@@ -58,7 +59,7 @@ func getChunkInfoFromTag(tags []map[string]interface{}) (*ChunkerInformation, er
 	return nil, fmt.Errorf("necessary tag not present in transaction")
 }
 
-func (bc *BatchCombiner) GetChunk(address string, chunks []chunker.Chunk) ([]chunker.Chunk, error) {
+func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chunker.Chunk, error) {
 	if address == "" {
 		return chunks, nil
 	}
@@ -77,5 +78,9 @@ func (bc *BatchCombiner) GetChunk(address string, chunks []chunker.Chunk) ([]chu
 	}
 	chunks = append(chunks, chunk)
 
-	return bc.GetChunk(chunkInfo.PreviousChunk, chunks)
+	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
+}
+
+func Recombine(chunks []chunker.Chunk, w io.Writer) error {
+	return chunker.Recombine(chunks, w)
 }

@@ -15,10 +15,11 @@ import (
 const chunkerVersion = "0.0.1"
 const AppName = "chunker"
 
-type BathMaker struct {
-	ar     *transactor.Transactor
-	wallet *wallet.Wallet
-	reader io.ReadSeeker
+type BatchMaker struct {
+	ar        *transactor.Transactor
+	wallet    *wallet.Wallet
+	reader    io.Reader
+	totalSize int64
 }
 
 type ChunkerInformation struct {
@@ -28,18 +29,19 @@ type ChunkerInformation struct {
 	Position      int64  `json:"position"`
 }
 
-func NewBatch(ar *transactor.Transactor, w *wallet.Wallet, reader io.ReadSeeker) *BathMaker {
+func NewBatch(ar *transactor.Transactor, w *wallet.Wallet, reader io.Reader, totalSize int64) *BatchMaker {
 
-	return &BathMaker{
-		ar:     ar,
-		wallet: w,
-		reader: reader,
+	return &BatchMaker{
+		ar:        ar,
+		wallet:    w,
+		reader:    reader,
+		totalSize: totalSize,
 	}
 }
 
-func (b *BathMaker) SendBatchTransaction() ([]string, error) {
+func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 	txList := []string{}
-	ch, err := chunker.NewChunker(b.reader)
+	ch, err := chunker.NewChunker(b.reader, b.totalSize)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,6 @@ func (b *BathMaker) SendBatchTransaction() ([]string, error) {
 		// if err != nil {
 		// 	return err
 		// }
-		// fmt.Println(hash)
 		// minedTx, err := b.ar.WaitMined(context.TODO(), tx)
 		txList = append(txList, tx.Hash())
 	}

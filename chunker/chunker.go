@@ -6,11 +6,10 @@ import (
 	"math"
 )
 
-const maxChunkSize = 2
-const chunkSizeMB = maxChunkSize << (10 * 2) // 2MB max encoded
+const chunkSizeMB = 2 << (10 * 2) // 2MB max encoded
 
 type Chunker struct {
-	reader       io.ReadSeeker
+	reader       io.Reader
 	totalSize    int64
 	totalChunks  int64
 	currentChunk int64
@@ -22,11 +21,7 @@ type Chunk struct {
 	Position int64  `json:"position"`
 }
 
-func NewChunker(reader io.ReadSeeker) (*Chunker, error) {
-	totalSize, err := reader.Seek(0, io.SeekEnd)
-	if err != nil {
-		return nil, err
-	}
+func NewChunker(reader io.Reader, totalSize int64) (*Chunker, error) {
 	return &Chunker{
 		reader:       reader,
 		totalChunks:  calculateTotalChunks(totalSize, chunkSizeMB),
@@ -36,8 +31,8 @@ func NewChunker(reader io.ReadSeeker) (*Chunker, error) {
 	}, nil
 }
 
-func calculateTotalChunks(totalFileSize, maxChunkSIze int64) int64 {
-	return int64(math.Ceil(float64(totalFileSize) / float64(chunkSizeMB)))
+func calculateTotalChunks(totalFileSize, maximumChunkSIze int64) int64 {
+	return int64(math.Ceil(float64(totalFileSize) / float64(maximumChunkSIze)))
 }
 
 func (c *Chunker) Size() int64 {
@@ -58,16 +53,9 @@ func (c *Chunker) Next() (*Chunk, error) {
 		return nil, io.EOF
 	}
 
-	// offset is i * chunkSizeMB
-	offset := c.currentChunk * chunkSizeMB
-
-	currentChunkSize := int64(math.Min(chunkSizeMB, float64(c.totalSize-c.currentChunk*chunkSizeMB)))
+	currentChunkSize := int64(math.Min(float64(c.maxChunkSize), float64(c.totalSize-c.currentChunk*c.maxChunkSize)))
 	data := make([]byte, currentChunkSize)
 
-	_, err := c.reader.Seek(offset, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
 	n, err := c.reader.Read(data)
 	if err != nil {
 		return nil, err
@@ -103,23 +91,20 @@ func (c *Chunker) ChunkAll() ([]Chunk, error) {
 	return chunks, nil
 }
 
-func (c *Chunker) Recombine(chunks []Chunk, w io.WriteSeeker) error {
+// Recombine recombines all of the chunks together. It starts with the last chunk (the first one to be created) and works it's way to the first one
+func Recombine(chunks []Chunk, w io.Writer) error {
 	if len(chunks) < 1 {
 		return fmt.Errorf("no chunks supplied")
 	}
-	lastChunk := int64(-1)
+	lastChunk := chunks[len(chunks)-1].Position
 	offset := int64(0)
-	for i := 0; i < len(chunks); i++ {
+	for i := len(chunks) - 1; i >= 0; i-- {
 		currentChunk := chunks[i]
-		if currentChunk.Position-lastChunk != 1 {
+		if currentChunk.Position-lastChunk > 1 || currentChunk.Position-lastChunk < 0 {
 			return fmt.Errorf("chunks not in order")
 		}
 		currentChunkSize := len(currentChunk.Data)
 
-		_, err := w.Seek(offset, io.SeekStart)
-		if err != nil {
-			return err
-		}
 		n, err := w.Write([]byte(currentChunk.Data))
 		if err != nil {
 			return err
