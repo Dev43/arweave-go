@@ -64,7 +64,7 @@ func (t *Transaction) ID() []byte {
 
 // Hash returns the base64 RawURLEncoding of the transaction hash
 func (t *Transaction) Hash() string {
-	return utils.EncodeToBase64(t.id[:])
+	return utils.EncodeToBase64(t.id)
 }
 
 // Tags returns the tags of the transaction
@@ -95,7 +95,6 @@ func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	msg := sha256.Sum256(payload)
 
 	sig, err := w.Sign(msg[:])
@@ -109,14 +108,15 @@ func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	}
 
 	id := sha256.Sum256((sig))
-	var idB []byte
+
+	idB := make([]byte, len(id))
 	copy(idB, id[:])
+	t.SetID(idB)
 
 	// we copy t into tx
 	tx := Transaction(*t)
 	// add the signature and ID to our new signature struct
 	tx.signature = sig
-	tx.SetID(idB)
 
 	return &tx, nil
 }
@@ -149,7 +149,7 @@ func (t *Transaction) formatMsgBytes() ([]byte, error) {
 // Format formats the transactions to a JSONTransaction that can be sent out to an arweave node
 func (t *Transaction) format() *transactionJSON {
 	return &transactionJSON{
-		ID:        utils.EncodeToBase64(t.id[:]),
+		ID:        utils.EncodeToBase64(t.id),
 		LastTx:    t.lastTx,
 		Owner:     utils.EncodeToBase64(t.owner.Bytes()),
 		Tags:      t.tags,
