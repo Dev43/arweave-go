@@ -82,7 +82,7 @@ func (tr *Transactor) CreateTransaction(ctx context.Context, w arweave.WalletSig
 		target,
 		data,
 		price,
-		make([]map[string]interface{}, 0))
+		make([]tx.Tag, 0))
 
 	return tx, nil
 }

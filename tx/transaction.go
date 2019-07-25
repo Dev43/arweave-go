@@ -10,7 +10,7 @@ import (
 )
 
 // NewTransaction creates a brand new transaction struct
-func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []map[string]interface{}) *Transaction {
+func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []Tag) *Transaction {
 	return &Transaction{
 		lastTx:   lastTx,
 		owner:    owner,
@@ -67,14 +67,41 @@ func (t *Transaction) Hash() string {
 	return utils.EncodeToBase64(t.id)
 }
 
-// Tags returns the tags of the transaction
-func (t *Transaction) Tags() []map[string]interface{} {
+// Tags returns the tags of the transaction in plain text
+func (t *Transaction) Tags() ([]Tag, error) {
+	tags := []Tag{}
+	for _, tag := range t.tags {
+		// access name
+		tagName, err := utils.DecodeString(tag.Name)
+		if err != nil {
+			return nil, err
+		}
+		tagValue, err := utils.DecodeString(tag.Value)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, Tag{Name: string(tagName), Value: string(tagValue)})
+	}
+	return tags, nil
+}
+
+// RawTags returns the unencoded tags of the transaction
+func (t *Transaction) RawTags() []Tag {
 	return t.tags
 }
 
-// SetTags sets the tags for the transaction
-func (t *Transaction) SetTags(tags []map[string]interface{}) {
-	t.tags = tags
+// AddTag adds a new tag to the transaction
+func (t *Transaction) AddTag(name string, value interface{}) error {
+	v, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	tag := Tag{
+		Name:  utils.EncodeToBase64([]byte(name)),
+		Value: utils.EncodeToBase64(v),
+	}
+	t.tags = append(t.tags, tag)
+	return nil
 }
 
 func (t *Transaction) SetID(id []byte) {
@@ -136,14 +163,35 @@ func (t *Transaction) formatMsgBytes() ([]byte, error) {
 		return nil, err
 	}
 
+	tags, err := t.encodeTagData()
+	if err != nil {
+		return nil, err
+	}
+
 	msg = append(msg, t.owner.Bytes()...)
 	msg = append(msg, target...)
 	msg = append(msg, t.data...)
 	msg = append(msg, t.quantity...)
 	msg = append(msg, t.reward...)
 	msg = append(msg, lastTx...)
+	msg = append(msg, tags...)
 
 	return msg, nil
+}
+
+// We need to encode the tag data properly for the signature. This means having the unencoded
+// value of the Name field concatenated with the unencoded value of the Value field
+func (t *Transaction) encodeTagData() (string, error) {
+	tagString := ""
+	unencodedTags, err := t.Tags()
+	if err != nil {
+		return "", err
+	}
+	for _, tag := range unencodedTags {
+		tagString += tag.Name + tag.Value
+	}
+
+	return tagString, nil
 }
 
 // Format formats the transactions to a JSONTransaction that can be sent out to an arweave node
