@@ -87,7 +87,7 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		fmt.Println(resp)
 		minedTx, err := b.ar.WaitMined(context.TODO(), tx)
 		txList = append(txList, minedTx.Hash())
-		fmt.Printf("Successfully sent transaction #%d with hash %s \n", chunk.Position, minedTx.Hash())
+		fmt.Printf("Successfully sent transaction %d/%d with hash %s \n", chunk.Position, ch.TotalChunks(), minedTx.Hash())
 
 	}
 	fmt.Printf("Successfully sent batch transactions with head transaction %s and list of transactions: \n - %s \n", txList[len(txList)-1], strings.Join(txList, "\n - "))
