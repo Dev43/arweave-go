@@ -55,7 +55,7 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 			return nil, err
 		}
 
-		txBuilder, err := b.ar.CreateTransaction(context.TODO(), b.wallet, "", data, "")
+		txBuilder, err := b.ar.CreateTransaction(context.TODO(), b.wallet, "0", data, "")
 		if err != nil {
 			return nil, err
 		}
@@ -80,12 +80,15 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		// hash, err := b.ar.SendTransaction(context.TODO(), tx)
-		// if err != nil {
-		// 	return err
-		// }
-		// minedTx, err := b.ar.WaitMined(context.TODO(), tx)
-		txList = append(txList, tx.Hash())
+		resp, err := b.ar.SendTransaction(context.TODO(), tx)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(resp)
+		minedTx, err := b.ar.WaitMined(context.TODO(), tx)
+		txList = append(txList, minedTx.Hash())
+		fmt.Printf("Successfully sent transaction #%d with hash %s \n", chunk.Position, minedTx.Hash())
+
 	}
 	fmt.Printf("Successfully sent batch transactions with head transaction %s and list of transactions: \n - %s \n", txList[len(txList)-1], strings.Join(txList, "\n - "))
 
