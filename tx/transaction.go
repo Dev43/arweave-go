@@ -10,7 +10,7 @@ import (
 )
 
 // NewTransaction creates a brand new transaction struct
-func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string, tags []Tag) *Transaction {
+func NewTransaction(lastTx string, owner *big.Int, quantity string, target string, data []byte, reward string) *Transaction {
 	return &Transaction{
 		lastTx:   lastTx,
 		owner:    owner,
@@ -18,7 +18,7 @@ func NewTransaction(lastTx string, owner *big.Int, quantity string, target strin
 		target:   target,
 		data:     data,
 		reward:   reward,
-		tags:     tags,
+		tags:     make([]Tag, 0),
 	}
 }
 
@@ -91,14 +91,10 @@ func (t *Transaction) RawTags() []Tag {
 }
 
 // AddTag adds a new tag to the transaction
-func (t *Transaction) AddTag(name string, value interface{}) error {
-	v, err := json.Marshal(value)
-	if err != nil {
-		return err
-	}
+func (t *Transaction) AddTag(name string, value string) error {
 	tag := Tag{
 		Name:  utils.EncodeToBase64([]byte(name)),
-		Value: utils.EncodeToBase64(v),
+		Value: utils.EncodeToBase64([]byte(value)),
 	}
 	t.tags = append(t.tags, tag)
 	return nil

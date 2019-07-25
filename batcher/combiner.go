@@ -8,6 +8,7 @@ import (
 
 	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/transactor"
+	"github.com/Dev43/arweave-go/tx"
 )
 
 type BatchCombiner struct {
@@ -26,7 +27,10 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Chunk,
 		return nil, err
 	}
 	chunk := chunker.Chunk{}
-	tags := headTx.Tags()
+	tags, err := headTx.Tags()
+	if err != nil {
+		return nil, err
+	}
 	chunkInfo, err := getChunkInfoFromTag(tags)
 	if err != nil {
 		return nil, err
@@ -44,15 +48,14 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Chunk,
 	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
-func getChunkInfoFromTag(tags []map[string]interface{}) (*ChunkerInformation, error) {
+func getChunkInfoFromTag(tags []tx.Tag) (*ChunkerInformation, error) {
 	for _, tag := range tags {
-		ch, ok := tag[AppName]
-		if ok {
-			chunkInfo, ok := ch.(ChunkerInformation)
-			if !ok {
-				return nil, fmt.Errorf("could not cast tags to ChunkerInformation")
+		if tag.Name == AppName {
+			chunkInfo := ChunkerInformation{}
+			err := json.Unmarshal([]byte(tag.Value), &chunkInfo)
+			if err != nil {
+				return nil, err
 			}
-
 			return &chunkInfo, nil
 		}
 	}
@@ -72,7 +75,11 @@ func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chu
 	if err != nil {
 		return nil, err
 	}
-	chunkInfo, err := getChunkInfoFromTag(tx.Tags())
+	tags, err := tx.Tags()
+	if err != nil {
+		return nil, err
+	}
+	chunkInfo, err := getChunkInfoFromTag(tags)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +88,7 @@ func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chu
 	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
+// Recombine recombines the chunks and writes it to an io.Writer
 func Recombine(chunks []chunker.Chunk, w io.Writer) error {
 	return chunker.Recombine(chunks, w)
 }

@@ -63,7 +63,6 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		if len(txList) > 0 {
 			previousChunk = txList[len(txList)-1]
 		}
-		tags := txBuilder.Tags()
 		isHead := false
 		if i+1 == ch.TotalChunks() {
 			isHead = true
@@ -74,8 +73,11 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 			Version:       chunkerVersion,
 			Position:      chunk.Position,
 		}
-		tags = append(tags, map[string]interface{}{AppName: chunkerInfo})
-		txBuilder.SetTags(tags)
+		tagValue, err := json.Marshal(chunkerInfo)
+		if err != nil {
+			return nil, err
+		}
+		txBuilder.AddTag(AppName, string(tagValue))
 		tx, err := txBuilder.Sign(b.wallet)
 		if err != nil {
 			return nil, err

@@ -3,6 +3,7 @@ package batcher
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -30,20 +31,26 @@ func (m *mockArClient) GetTransaction(ctx context.Context, txID string) (*tx.Tra
 	return m.Tx(txID), m.TxErr
 }
 
-func createNewTestTransaction(id []byte, data string, tags []map[string]interface{}) *tx.Transaction {
-	tx := tx.NewTransaction("", nil, "", "", ([]byte(data)), "", tags)
+func createNewTestTransaction(id []byte, data string, tags []tx.Tag) *tx.Transaction {
+	tx := tx.NewTransaction("", nil, "", "", ([]byte(data)), "")
+	for _, tag := range tags {
+		tx.AddTag(tag.Name, tag.Value)
+	}
 	tx.SetID(id)
 	return tx
 }
 
 func sendTransaction(hash string) *tx.Transaction {
+	tag1, _ := json.Marshal(ChunkerInformation{PreviousChunk: "", Position: 0})
+	tag2, _ := json.Marshal(ChunkerInformation{PreviousChunk: "0xa", Position: 1})
+	tag3, _ := json.Marshal(ChunkerInformation{PreviousChunk: "0xb", Position: 2, IsHead: true})
 	switch hash {
 	case "0xa":
-		return createNewTestTransaction([]byte("0xa"), `{"data": "hi", "position": 0}`, []map[string]interface{}{{AppName: ChunkerInformation{PreviousChunk: "", Position: 0}}})
+		return createNewTestTransaction([]byte("0xa"), `{"data": "hi", "position": 0}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag1)}})
 	case "0xb":
-		return createNewTestTransaction([]byte("0xb"), `{"data": "hello", "position": 1}`, []map[string]interface{}{{AppName: ChunkerInformation{PreviousChunk: "0xa", Position: 1}}})
+		return createNewTestTransaction([]byte("0xb"), `{"data": "hello", "position": 1}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag2)}})
 	case "0xc":
-		return createNewTestTransaction([]byte("0xc"), `{"data": "there", "position": 2}`, []map[string]interface{}{{AppName: ChunkerInformation{PreviousChunk: "0xb", Position: 2, IsHead: true}}})
+		return createNewTestTransaction([]byte("0xc"), `{"data": "there", "position": 2}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag3)}})
 	}
 	return nil
 }

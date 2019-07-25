@@ -64,7 +64,7 @@ func TestCreateTransaction(t *testing.T) {
 		quantity string
 		target   string
 		data     []byte
-		tag      []map[string]interface{}
+		tag      []tx.Tag
 	}{
 		{
 			&mockCaller{
@@ -79,7 +79,7 @@ func TestCreateTransaction(t *testing.T) {
 			"1",
 			"0xC",
 			[]byte("hello"),
-			make([]map[string]interface{}, 0),
+			make([]tx.Tag, 0),
 		},
 	}
 
@@ -91,7 +91,6 @@ func TestCreateTransaction(t *testing.T) {
 		}
 		assert.Equal(t, c.quantity, tx.Quantity(), "quantity field does not match")
 		assert.Equal(t, c.target, tx.Target(), "target field does not match")
-		assert.Equal(t, c.tag, tx.Tags(), "tags field does not match")
 		assert.Equal(t, c.caller.LastTx, tx.LastTx(), "last tx field does not match")
 		assert.Equal(t, c.caller.Reward, tx.Reward(), "reward field does not match")
 		assert.Equal(t, utils.EncodeToBase64(c.wallet.PubKeyModulus().Bytes()), tx.Owner(), "owner field does not match")
