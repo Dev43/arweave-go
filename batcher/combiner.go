@@ -21,12 +21,12 @@ func NewBatchCombiner(client transactor.ClientCaller) *BatchCombiner {
 	}
 }
 
-func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Chunk, error) {
+func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.EncodedChunk, error) {
 	headTx, err := bc.arClient.GetTransaction(context.TODO(), headChunkAddress)
 	if err != nil {
 		return nil, err
 	}
-	chunk := chunker.Chunk{}
+	chunk := chunker.EncodedChunk{}
 	tags, err := headTx.Tags()
 	if err != nil {
 		return nil, err
@@ -43,15 +43,15 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Chunk,
 	if err != nil {
 		return nil, err
 	}
-	chunks := []chunker.Chunk{}
+	chunks := []chunker.EncodedChunk{}
 	chunks = append(chunks, chunk)
 	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
-func getChunkInfoFromTag(tags []tx.Tag) (*ChunkerInformation, error) {
+func getChunkInfoFromTag(tags []tx.Tag) (*ChunkInformation, error) {
 	for _, tag := range tags {
 		if tag.Name == AppName {
-			chunkInfo := ChunkerInformation{}
+			chunkInfo := ChunkInformation{}
 			err := json.Unmarshal([]byte(tag.Value), &chunkInfo)
 			if err != nil {
 				return nil, err
@@ -62,7 +62,7 @@ func getChunkInfoFromTag(tags []tx.Tag) (*ChunkerInformation, error) {
 	return nil, fmt.Errorf("necessary tag not present in transaction")
 }
 
-func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chunker.Chunk, error) {
+func (bc *BatchCombiner) getChunk(address string, chunks []chunker.EncodedChunk) ([]chunker.EncodedChunk, error) {
 	if address == "" {
 		return chunks, nil
 	}
@@ -70,7 +70,7 @@ func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chu
 	if err != nil {
 		return nil, err
 	}
-	chunk := chunker.Chunk{}
+	chunk := chunker.EncodedChunk{}
 	err = json.Unmarshal([]byte(tx.RawData()), &chunk)
 	if err != nil {
 		return nil, err
@@ -89,6 +89,6 @@ func (bc *BatchCombiner) getChunk(address string, chunks []chunker.Chunk) ([]chu
 }
 
 // Recombine recombines the chunks and writes it to an io.Writer
-func Recombine(chunks []chunker.Chunk, w io.Writer) error {
+func Recombine(chunks []chunker.EncodedChunk, w io.Writer) error {
 	return chunker.Recombine(chunks, w)
 }

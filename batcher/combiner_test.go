@@ -41,9 +41,9 @@ func createNewTestTransaction(id []byte, data string, tags []tx.Tag) *tx.Transac
 }
 
 func sendTransaction(hash string) *tx.Transaction {
-	tag1, _ := json.Marshal(ChunkerInformation{PreviousChunk: "", Position: 0})
-	tag2, _ := json.Marshal(ChunkerInformation{PreviousChunk: "0xa", Position: 1})
-	tag3, _ := json.Marshal(ChunkerInformation{PreviousChunk: "0xb", Position: 2, IsHead: true})
+	tag1, _ := json.Marshal(ChunkInformation{PreviousChunk: "", Position: 0})
+	tag2, _ := json.Marshal(ChunkInformation{PreviousChunk: "0xa", Position: 1})
+	tag3, _ := json.Marshal(ChunkInformation{PreviousChunk: "0xb", Position: 2, IsHead: true})
 	switch hash {
 	case "0xa":
 		return createNewTestTransaction([]byte("0xa"), `{"data": "hi", "position": 0}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag1)}})

@@ -13,8 +13,11 @@ import (
 )
 
 const chunkerVersion = "0.0.1"
-const AppName = "chunker"
 
+// AppName is the application name for the batcher. It is added to transaction tags to retrieve them easily.
+const AppName = "arweave-go-batcher"
+
+// BatchMaker struct
 type BatchMaker struct {
 	ar        *transactor.Transactor
 	wallet    *wallet.Wallet
@@ -22,15 +25,17 @@ type BatchMaker struct {
 	totalSize int64
 }
 
-type ChunkerInformation struct {
+// ChunkInformation is the extra data we add to the tags to inform us about the last chunk, it's position, whether it's the
+// head of the chunk and it's data version
+type ChunkInformation struct {
 	PreviousChunk string `json:"previous_chunk"`
 	IsHead        bool   `json:"is_head"`
 	Version       string `json:"version"`
 	Position      int64  `json:"position"`
 }
 
+// NewBatch creates a NewBatch struct
 func NewBatch(ar *transactor.Transactor, w *wallet.Wallet, reader io.Reader, totalSize int64) *BatchMaker {
-
 	return &BatchMaker{
 		ar:        ar,
 		wallet:    w,
@@ -39,6 +44,7 @@ func NewBatch(ar *transactor.Transactor, w *wallet.Wallet, reader io.Reader, tot
 	}
 }
 
+// SendBatchTransaction chunks, sends and waits for all the transactions to get mined
 func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 	txList := []string{}
 	ch, err := chunker.NewChunker(b.reader, b.totalSize)
@@ -67,7 +73,7 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		if i+1 == ch.TotalChunks() {
 			isHead = true
 		}
-		chunkerInfo := ChunkerInformation{
+		chunkerInfo := ChunkInformation{
 			PreviousChunk: previousChunk,
 			IsHead:        isHead,
 			Version:       chunkerVersion,
