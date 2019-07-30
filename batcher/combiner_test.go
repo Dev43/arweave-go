@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/Dev43/arweave-go/tx"
+	"github.com/Dev43/arweave-go/utils"
 )
 
 type mockArClient struct {
@@ -44,13 +46,16 @@ func sendTransaction(hash string) *tx.Transaction {
 	tag1, _ := json.Marshal(ChunkInformation{PreviousChunk: "", Position: 0})
 	tag2, _ := json.Marshal(ChunkInformation{PreviousChunk: "0xa", Position: 1})
 	tag3, _ := json.Marshal(ChunkInformation{PreviousChunk: "0xb", Position: 2, IsHead: true})
+	data1 := ([]byte("hi"))
+	data2 := ([]byte("hello"))
+	data3 := ([]byte("there"))
 	switch hash {
 	case "0xa":
-		return createNewTestTransaction([]byte("0xa"), `{"data": "hi", "position": 0}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag1)}})
+		return createNewTestTransaction([]byte("0xa"), fmt.Sprintf("{\"data\": \"%s\", \"position\": %d}", utils.EncodeToBase64(data1), 0), []tx.Tag{tx.Tag{Name: AppName, Value: string(tag1)}})
 	case "0xb":
-		return createNewTestTransaction([]byte("0xb"), `{"data": "hello", "position": 1}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag2)}})
+		return createNewTestTransaction([]byte("0xb"), fmt.Sprintf("{\"data\": \"%s\", \"position\": %d}", utils.EncodeToBase64(data2), 1), []tx.Tag{tx.Tag{Name: AppName, Value: string(tag2)}})
 	case "0xc":
-		return createNewTestTransaction([]byte("0xc"), `{"data": "there", "position": 2}`, []tx.Tag{tx.Tag{Name: AppName, Value: string(tag3)}})
+		return createNewTestTransaction([]byte("0xc"), fmt.Sprintf("{\"data\": \"%s\", \"position\": %d}", utils.EncodeToBase64(data3), 2), []tx.Tag{tx.Tag{Name: AppName, Value: string(tag3)}})
 	}
 	return nil
 }
