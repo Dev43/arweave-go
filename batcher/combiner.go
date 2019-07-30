@@ -39,7 +39,7 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Encode
 		return nil, fmt.Errorf("transaction is not the head chunk transaction")
 	}
 
-	err = json.Unmarshal((headTx.RawData()), &chunk)
+	err = json.Unmarshal(headTx.RawData(), &chunk)
 	if err != nil {
 		return nil, err
 	}

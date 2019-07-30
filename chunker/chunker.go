@@ -9,7 +9,7 @@ import (
 const kb = 1 << (10 * 1)
 const mb = 1 << (10 * 2)
 
-const maxEncodedChunkSize = 500 * kb
+const chunkSize = 500 * kb
 
 // Chunker struct
 type Chunker struct {
@@ -19,17 +19,11 @@ type Chunker struct {
 	currentChunk int64
 }
 
-// EncodedChunk is the data structure representing an encoded chunk on the arweave
-type EncodedChunk struct {
-	Data     string `json:"data"`
-	Position int64  `json:"position"`
-}
-
 // NewChunker creates a new chunker struct
 func NewChunker(reader io.Reader, totalSize int64) (*Chunker, error) {
 	return &Chunker{
 		reader:       reader,
-		totalChunks:  calculateTotalChunks(totalSize, maxEncodedChunkSize),
+		totalChunks:  calculateTotalChunks(totalSize, chunkSize),
 		totalSize:    totalSize,
 		currentChunk: 0,
 	}, nil
@@ -64,7 +58,7 @@ func (c *Chunker) Next() (*EncodedChunk, error) {
 	if c.currentChunk >= c.totalChunks {
 		return nil, io.EOF
 	}
-	size := int64(math.Min(float64(maxEncodedChunkSize), float64(c.totalSize-c.currentChunk*maxEncodedChunkSize)))
+	size := int64(math.Min(float64(chunkSize), float64(c.totalSize-c.currentChunk*chunkSize)))
 	data := make([]byte, size)
 
 	n, err := c.reader.Read(data)
