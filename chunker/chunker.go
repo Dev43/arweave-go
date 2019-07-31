@@ -6,76 +6,74 @@ import (
 	"math"
 )
 
-const maxChunkSize = 2
-const chunkSizeMB = maxChunkSize << (10 * 2) // 2MB max encoded
+const kb = 1 << (10 * 1)
+const mb = 1 << (10 * 2)
 
+const chunkSize = 500 * kb
+
+// Chunker struct
 type Chunker struct {
-	reader       io.ReadSeeker
+	reader       io.Reader
 	totalSize    int64
 	totalChunks  int64
 	currentChunk int64
-	maxChunkSize int64
 }
 
-type Chunk struct {
-	Data     string `json:"data"`
-	Position int64  `json:"position"`
-}
-
-func NewChunker(reader io.ReadSeeker) (*Chunker, error) {
-	totalSize, err := reader.Seek(0, io.SeekEnd)
-	if err != nil {
-		return nil, err
-	}
+// NewChunker creates a new chunker struct
+func NewChunker(reader io.Reader, totalSize int64) (*Chunker, error) {
 	return &Chunker{
 		reader:       reader,
-		totalChunks:  calculateTotalChunks(totalSize, chunkSizeMB),
+		totalChunks:  calculateTotalChunks(totalSize, chunkSize),
 		totalSize:    totalSize,
 		currentChunk: 0,
-		maxChunkSize: chunkSizeMB,
 	}, nil
 }
 
-func calculateTotalChunks(totalFileSize, maxChunkSIze int64) int64 {
-	return int64(math.Ceil(float64(totalFileSize) / float64(chunkSizeMB)))
+func calculateTotalChunks(totalFileSize, chunkSize int64) int64 {
+	return int64(math.Ceil(float64(totalFileSize) / float64(chunkSize)))
 }
 
+func (c *Chunker) resetCurrentChunk() {
+	c.currentChunk = 0
+}
+
+// Size retrieves the total size of the chunk
 func (c *Chunker) Size() int64 {
 	return c.totalSize
 }
 
-func (c *Chunker) SetMaxChunkSize(maxChunkSize int64) {
-	c.totalChunks = calculateTotalChunks(c.totalSize, maxChunkSize)
-	c.maxChunkSize = maxChunkSize
+// EncodedSize calculates the Base64RawURL encoded size of our chunk
+func (c *Chunker) EncodedSize() int64 {
+	return getEncodedSize(c.totalSize)
 }
 
+// SetChunkSize sets the chunk size
+func (c *Chunker) SetChunkSize(size int64) {
+	c.resetCurrentChunk()
+	c.totalChunks = calculateTotalChunks(c.totalSize, size)
+}
+
+// TotalChunks returns the total chunks
 func (c *Chunker) TotalChunks() int64 {
 	return c.totalChunks
 }
 
-func (c *Chunker) Next() (*Chunk, error) {
+// Next retrieves the next chunk from the io.Reader
+func (c *Chunker) Next() (*EncodedChunk, error) {
 	if c.currentChunk >= c.totalChunks {
 		return nil, io.EOF
 	}
+	size := int64(math.Min(float64(chunkSize), float64(c.totalSize-c.currentChunk*chunkSize)))
+	data := make([]byte, size)
 
-	// offset is i * chunkSizeMB
-	offset := c.currentChunk * chunkSizeMB
-
-	currentChunkSize := int64(math.Min(chunkSizeMB, float64(c.totalSize-c.currentChunk*chunkSizeMB)))
-	data := make([]byte, currentChunkSize)
-
-	_, err := c.reader.Seek(offset, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
 	n, err := c.reader.Read(data)
 	if err != nil {
 		return nil, err
 	}
-	if n != int(currentChunkSize) {
-		return nil, fmt.Errorf("Did not read the right amount of bytes expected %d actual %d ", currentChunkSize, n)
+	if n != int(size) {
+		return nil, fmt.Errorf("did not read the right amount of bytes expected %d actual %d ", size, n)
 	}
-	chunk := Chunk{
+	chunk := EncodedChunk{
 		Data:     string(data),
 		Position: c.currentChunk,
 	}
@@ -86,9 +84,10 @@ func (c *Chunker) Next() (*Chunk, error) {
 
 }
 
-func (c *Chunker) ChunkAll() ([]Chunk, error) {
-	c.currentChunk = 0
-	chunks := make([]Chunk, c.totalChunks)
+// ChunkAll is a commodity function designed to returns all the chunks from an io.Reader
+func (c *Chunker) ChunkAll() ([]EncodedChunk, error) {
+	c.resetCurrentChunk()
+	chunks := make([]EncodedChunk, c.totalChunks)
 	for i := int64(0); i < c.totalChunks; i++ {
 		chunk, err := c.Next()
 		if err == io.EOF {
@@ -103,23 +102,20 @@ func (c *Chunker) ChunkAll() ([]Chunk, error) {
 	return chunks, nil
 }
 
-func (c *Chunker) Recombine(chunks []Chunk, w io.WriteSeeker) error {
+// Recombine recombines all of the chunks. It starts with the last chunk (which is the first one to be created) and works it's way to the first one
+func Recombine(chunks []EncodedChunk, w io.Writer) error {
 	if len(chunks) < 1 {
 		return fmt.Errorf("no chunks supplied")
 	}
-	lastChunk := int64(-1)
+	lastChunk := chunks[len(chunks)-1].Position
 	offset := int64(0)
-	for i := 0; i < len(chunks); i++ {
+	for i := len(chunks) - 1; i >= 0; i-- {
 		currentChunk := chunks[i]
-		if currentChunk.Position-lastChunk != 1 {
+		if currentChunk.Position-lastChunk > 1 || currentChunk.Position-lastChunk < 0 {
 			return fmt.Errorf("chunks not in order")
 		}
 		currentChunkSize := len(currentChunk.Data)
 
-		_, err := w.Seek(offset, io.SeekStart)
-		if err != nil {
-			return err
-		}
 		n, err := w.Write([]byte(currentChunk.Data))
 		if err != nil {
 			return err
@@ -133,4 +129,19 @@ func (c *Chunker) Recombine(chunks []Chunk, w io.WriteSeeker) error {
 	}
 
 	return nil
+}
+
+func paddingSize(inputSize int64) int64 {
+	if inputSize%3 == 0 {
+		return 3 - (inputSize % 3)
+	}
+	return 0
+}
+
+func getEncodedSize(size int64) int64 {
+	return int64(((4 * size / 3) + 3) & ^3)
+}
+
+func getDecodedSize(encSize int64) int64 {
+	return int64(math.Ceil(float64(encSize) * 3 / 4))
 }
