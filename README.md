@@ -41,7 +41,7 @@ if err != nil {
 // message signature is valid
 ```
 
-### Api
+### API
 
 You can call all of the Arweave HTTP api endpoints using the api package. First you must give it the node url or IP address.
 
@@ -187,5 +187,5 @@ If you actually run the last example, it will retrieve a folder with the Bitcoin
 
 If you enjoy the library, please consider donating:
 
-- *Arweave Address*: `pfJXiTwwjQwSJF9VT1ZK6kauvobWuKKLUzjz29R1gbQ`
-- *Ethereum Address*: `0x3E42b8b399dca71b5c004921Fc6eFfa8dDc9409d`
+- **Arweave Address**: `pfJXiTwwjQwSJF9VT1ZK6kauvobWuKKLUzjz29R1gbQ`
+- **Ethereum Address**: `0x3E42b8b399dca71b5c004921Fc6eFfa8dDc9409d`

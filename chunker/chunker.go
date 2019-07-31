@@ -33,6 +33,10 @@ func calculateTotalChunks(totalFileSize, chunkSize int64) int64 {
 	return int64(math.Ceil(float64(totalFileSize) / float64(chunkSize)))
 }
 
+func (c *Chunker) resetCurrentChunk() {
+	c.currentChunk = 0
+}
+
 // Size retrieves the total size of the chunk
 func (c *Chunker) Size() int64 {
 	return c.totalSize
@@ -45,6 +49,7 @@ func (c *Chunker) EncodedSize() int64 {
 
 // SetChunkSize sets the chunk size
 func (c *Chunker) SetChunkSize(size int64) {
+	c.resetCurrentChunk()
 	c.totalChunks = calculateTotalChunks(c.totalSize, size)
 }
 
@@ -81,7 +86,7 @@ func (c *Chunker) Next() (*EncodedChunk, error) {
 
 // ChunkAll is a commodity function designed to returns all the chunks from an io.Reader
 func (c *Chunker) ChunkAll() ([]EncodedChunk, error) {
-	c.currentChunk = 0
+	c.resetCurrentChunk()
 	chunks := make([]EncodedChunk, c.totalChunks)
 	for i := int64(0); i < c.totalChunks; i++ {
 		chunk, err := c.Next()

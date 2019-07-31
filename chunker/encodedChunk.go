@@ -12,11 +12,13 @@ type EncodedChunk struct {
 	Position int64  `json:"position"`
 }
 
+// EncodedChunkJSON is the intermediary data to encode/decode into JSON
 type EncodedChunkJSON struct {
 	Data     string `json:"data"`
 	Position int64  `json:"position"`
 }
 
+// NewEncodedChunkJSON creates a new EncodedChunkJSON struct
 func NewEncodedChunkJSON(ec *EncodedChunk) *EncodedChunkJSON {
 	return &EncodedChunkJSON{
 		Data:     utils.EncodeToBase64([]byte(ec.Data)),
@@ -24,7 +26,7 @@ func NewEncodedChunkJSON(ec *EncodedChunk) *EncodedChunkJSON {
 	}
 }
 
-func (ecj *EncodedChunkJSON) ToChunk() (*EncodedChunk, error) {
+func (ecj *EncodedChunkJSON) toChunk() (*EncodedChunk, error) {
 	decoded, err := utils.DecodeString(ecj.Data)
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func (ec *EncodedChunk) UnmarshalJSON(input []byte) error {
 	if err != nil {
 		return err
 	}
-	encoded, err := enc.ToChunk()
+	encoded, err := enc.toChunk()
 	if err != nil {
 		return err
 	}
