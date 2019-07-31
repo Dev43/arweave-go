@@ -144,6 +144,54 @@ func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	return &tx, nil
 }
 
+// MarshalJSON marshals as JSON
+func (t *Transaction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.format())
+}
+
+// UnmarshalJSON unmarshals as JSON
+func (t *Transaction) UnmarshalJSON(input []byte) error {
+	txn := transactionJSON{}
+	err := json.Unmarshal(input, &txn)
+	if err != nil {
+		return err
+	}
+	id, err := utils.DecodeString(txn.ID)
+	if err != nil {
+		return err
+	}
+	t.id = id
+
+	t.lastTx = txn.LastTx
+
+	// gives me byte representation of the big num
+	owner, err := utils.DecodeString(txn.Owner)
+	if err != nil {
+		return err
+	}
+	n := new(big.Int)
+	t.owner = n.SetBytes(owner)
+
+	t.tags = txn.Tags
+	t.target = txn.Target
+	t.quantity = txn.Quantity
+
+	data, err := utils.DecodeString(txn.Data)
+	if err != nil {
+		return err
+	}
+	t.data = data
+	t.reward = txn.Reward
+
+	sig, err := utils.DecodeString(txn.Signature)
+	if err != nil {
+		return err
+	}
+	t.signature = sig
+
+	return nil
+}
+
 // formatMsgBytes formats the message that needs to be signed. All fields
 // need to be an array of bytes originating from the necessary data (not base64url encoded).
 // The signing message is the SHA256 of the concatenation of the byte arrays
@@ -203,52 +251,4 @@ func (t *Transaction) format() *transactionJSON {
 		Reward:    t.reward,
 		Signature: utils.EncodeToBase64(t.signature),
 	}
-}
-
-// MarshalJSON marshals as JSON
-func (t *Transaction) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.format())
-}
-
-// UnmarshalJSON unmarshals as JSON
-func (t *Transaction) UnmarshalJSON(input []byte) error {
-	txn := transactionJSON{}
-	err := json.Unmarshal(input, &txn)
-	if err != nil {
-		return err
-	}
-	id, err := utils.DecodeString(txn.ID)
-	if err != nil {
-		return err
-	}
-	t.id = id
-
-	t.lastTx = txn.LastTx
-
-	// gives me byte representation of the big num
-	owner, err := utils.DecodeString(txn.Owner)
-	if err != nil {
-		return err
-	}
-	n := new(big.Int)
-	t.owner = n.SetBytes(owner)
-
-	t.tags = txn.Tags
-	t.target = txn.Target
-	t.quantity = txn.Quantity
-
-	data, err := utils.DecodeString(txn.Data)
-	if err != nil {
-		return err
-	}
-	t.data = data
-	t.reward = txn.Reward
-
-	sig, err := utils.DecodeString(txn.Signature)
-	if err != nil {
-		return err
-	}
-	t.signature = sig
-
-	return nil
 }

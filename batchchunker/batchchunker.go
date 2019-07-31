@@ -1,4 +1,4 @@
-package batcher
+package batchchunker
 
 import (
 	"context"
@@ -81,7 +81,7 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		txBuilder.AddTag(arweave.BatcherAppName, string(tagValue))
+		txBuilder.AddTag(arweave.BatchChunkerAppName, string(tagValue))
 		tx, err := txBuilder.Sign(b.wallet)
 		if err != nil {
 			return nil, err

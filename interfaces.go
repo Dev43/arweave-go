@@ -11,5 +11,5 @@ type WalletSigner interface {
 	PubKeyModulus() *big.Int
 }
 
-// BatcherAppName is the application name for the batcher. It is added to transaction tags to retrieve them easily.
-const BatcherAppName = "arweave-go-batcher"
+// BatchChunkerAppName is the application name for the batchchunker. It is added to transaction tags to retrieve them easily.
+const BatchChunkerAppName = "arweave-go-batchchunker"

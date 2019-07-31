@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/Dev43/arweave-go"
-	"github.com/Dev43/arweave-go/batcher"
+	"github.com/Dev43/arweave-go/batchchunker"
 	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/transactor"
 	"github.com/Dev43/arweave-go/tx"
@@ -54,10 +54,10 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Encode
 	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
-func getChunkInfoFromTag(tags []tx.Tag) (*batcher.ChunkInformation, error) {
+func getChunkInfoFromTag(tags []tx.Tag) (*batchchunker.ChunkInformation, error) {
 	for _, tag := range tags {
-		if tag.Name == arweave.BatcherAppName {
-			chunkInfo := batcher.ChunkInformation{}
+		if tag.Name == arweave.BatchChunkerAppName {
+			chunkInfo := batchchunker.ChunkInformation{}
 			err := json.Unmarshal([]byte(tag.Value), &chunkInfo)
 			if err != nil {
 				return nil, err
