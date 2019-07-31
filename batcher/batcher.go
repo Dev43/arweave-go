@@ -7,15 +7,13 @@ import (
 	"io"
 	"strings"
 
+	"github.com/Dev43/arweave-go"
 	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/transactor"
 	"github.com/Dev43/arweave-go/wallet"
 )
 
 const chunkerVersion = "0.0.1"
-
-// AppName is the application name for the batcher. It is added to transaction tags to retrieve them easily.
-const AppName = "arweave-go-batcher"
 
 // BatchMaker struct
 type BatchMaker struct {
@@ -83,7 +81,7 @@ func (b *BatchMaker) SendBatchTransaction() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		txBuilder.AddTag(AppName, string(tagValue))
+		txBuilder.AddTag(arweave.BatcherAppName, string(tagValue))
 		tx, err := txBuilder.Sign(b.wallet)
 		if err != nil {
 			return nil, err

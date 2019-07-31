@@ -1,4 +1,4 @@
-package batcher
+package combiner
 
 import (
 	"context"
@@ -6,21 +6,27 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/Dev43/arweave-go"
+	"github.com/Dev43/arweave-go/batcher"
 	"github.com/Dev43/arweave-go/chunker"
 	"github.com/Dev43/arweave-go/transactor"
 	"github.com/Dev43/arweave-go/tx"
 )
 
+// BatchCombiner struct
 type BatchCombiner struct {
 	arClient transactor.ClientCaller
 }
 
+// NewBatchCombiner creates a new BatchCombiner struct
 func NewBatchCombiner(client transactor.ClientCaller) *BatchCombiner {
 	return &BatchCombiner{
 		arClient: client,
 	}
 }
 
+// GetAllChunks retrieves all chunks from the arweave network by using the address of the head chunk (the tip of the chunks)
+// if the chunk at the address is not the head, it exits
 func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.EncodedChunk, error) {
 	headTx, err := bc.arClient.GetTransaction(context.TODO(), headChunkAddress)
 	if err != nil {
@@ -48,10 +54,10 @@ func (bc *BatchCombiner) GetAllChunks(headChunkAddress string) ([]chunker.Encode
 	return bc.getChunk(chunkInfo.PreviousChunk, chunks)
 }
 
-func getChunkInfoFromTag(tags []tx.Tag) (*ChunkInformation, error) {
+func getChunkInfoFromTag(tags []tx.Tag) (*batcher.ChunkInformation, error) {
 	for _, tag := range tags {
-		if tag.Name == AppName {
-			chunkInfo := ChunkInformation{}
+		if tag.Name == arweave.BatcherAppName {
+			chunkInfo := batcher.ChunkInformation{}
 			err := json.Unmarshal([]byte(tag.Value), &chunkInfo)
 			if err != nil {
 				return nil, err
