@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/Dev43/arweave-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Dev43/arweave-go)](https://goreportcard.com/report/github.com/Dev43/arweave-go)
 
-Golang Client to interact with the Arweave Blockchain
+Golang Client to interact with the Arweave Blockchain.
 
 ## Usage
 
@@ -19,38 +19,37 @@ w := wallet.NewWallet()
 // extract the key from the wallet instance
 err = w.LoadKeyFromFile("./arweave.json")
 if err != nil {
-	log.Fatal(err)
+	//...
 }
 ```
 
 You can directly load the key by using it's filepath or pass it as an array of bytes using `LoadKey([]byte)`.
 
-With the wallet, you can sign and verify a message:
+With the wallet struct, you can sign and verify a message:
 
 ```golang
-// sign the message "msg"
-msg := []byte("msg")
+// sign the message "example"
+msg := []byte("example")
 sig, err := w.Sign(msg))
 if err != nil {
-	log.Fatal(err)
+	//...
 }
 err = w.Verify(msg, sig)
 if err != nil {
-	// message signature is not valid
-	log.Fatal(err)
+	// message signature is not valid...
 }
+// message signature is valid
 ```
 
 ### Api
 
-You can call all of the Arweave HTTP api endpoints using the api package. First you must give it the node url or ip address
+You can call all of the Arweave HTTP api endpoints using the api package. First you must give it the node url or IP address.
 
 ```golang
 ipAddress := "127.0.0.1"
 c, err := api.Dial(ipAddress)
 if err != nil {
 	// problem connecting
-	log.Fatal(err)
 }
 ```
 
@@ -96,8 +95,6 @@ To create a new transaction, you will need to interact with the `transactor` pac
 		//...
 	}
 
-	fmt.Println(resp)
-
 	// wait for the transaction to get mined
 	finalTx, err := ar.WaitMined(context.TODO(), txn)
 	if err != nil {
@@ -122,11 +119,11 @@ To create chunks, use the `chunker` package. Currently the chunker takes 500KB c
 	if err != nil {
 		//...
 	}
-	fInfo, err := f.Stat()
+	info, err := f.Stat()
 	if err != nil {
 		//...
 	}
-	chunker, err := chunker.NewChunker(f, fInfo.Size())
+	chunker, err := chunker.NewChunker(f, info.Size())
 	if err != nil {
 		//...
 	}
@@ -145,13 +142,13 @@ To directly do both the chunking and the batch sending of transaction, you can u
 	if err != nil {
 		//...
 	}
-	fInfo, err := f.Stat()
+	info, err := f.Stat()
 	if err != nil {
 		//...
 	}
 
 	// creates a new batch
-	newB := batchchunker.NewBatch(ar, w, f, fInfo.Size())
+	newB := batchchunker.NewBatch(ar, w, f, info.Size())
 
 	// sends all the transactions
 	list, err := newB.SendBatchTransaction()
@@ -190,5 +187,5 @@ If you actually run the last example, it will retrieve a folder with the Bitcoin
 
 If you enjoy the library, please consider donating:
 
-Arweave Address: `pfJXiTwwjQwSJF9VT1ZK6kauvobWuKKLUzjz29R1gbQ`
-Ethereum Address: `0x3E42b8b399dca71b5c004921Fc6eFfa8dDc9409d`
+- *Arweave Address*: `pfJXiTwwjQwSJF9VT1ZK6kauvobWuKKLUzjz29R1gbQ`
+- *Ethereum Address*: `0x3E42b8b399dca71b5c004921Fc6eFfa8dDc9409d`
