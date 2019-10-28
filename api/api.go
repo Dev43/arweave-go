@@ -13,6 +13,9 @@ import (
 	"github.com/Dev43/arweave-go/tx"
 )
 
+var v2BlockFormatHeader = map[string]string{"X-Block-Format": "2"}
+
+
 // Client struct
 type Client struct {
 	client *http.Client
@@ -26,7 +29,7 @@ func Dial(url string) (*Client, error) {
 
 // GetData requests the data of a transaction
 func (c *Client) GetData(ctx context.Context, txID string) (string, error) {
-	body, err := c.get(ctx, fmt.Sprintf("tx/%s/data", txID))
+	body, err := c.get(ctx, fmt.Sprintf("tx/%s/data", txID), nil)
 	if err != nil {
 		return "", err
 	}
@@ -35,7 +38,7 @@ func (c *Client) GetData(ctx context.Context, txID string) (string, error) {
 
 // LastTransaction requests the last transaction of an account
 func (c *Client) LastTransaction(ctx context.Context, address string) (string, error) {
-	body, err := c.get(ctx, fmt.Sprintf("wallet/%s/last_tx", address))
+	body, err := c.get(ctx, fmt.Sprintf("wallet/%s/last_tx", address), nil)
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +47,7 @@ func (c *Client) LastTransaction(ctx context.Context, address string) (string, e
 
 // GetTransaction requests the information of a transaction
 func (c *Client) GetTransaction(ctx context.Context, txID string) (*tx.Transaction, error) {
-	body, err := c.get(ctx, fmt.Sprintf("tx/%s", txID))
+	body, err := c.get(ctx, fmt.Sprintf("tx/%s", txID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -62,16 +65,16 @@ func (c *Client) GetTransaction(ctx context.Context, txID string) (*tx.Transacti
 
 // GetTransaction requests the information of a transaction
 func (c *Client) GetPendingTransactions(ctx context.Context) ([]string, error) {
-	body, err := c.get(ctx, fmt.Sprintf("tx/pending"))
+	body, err := c.get(ctx, fmt.Sprintf("tx/pending"), nil)
 	if err != nil {
 		return nil, err
 	}
-	tx := []string{}
-	err = json.Unmarshal(body, &tx)
+	var tran []string
+	err = json.Unmarshal(body, &tran)
 	if err != nil {
 		return nil, err
 	}
-	return tx, nil
+	return tran, nil
 }
 
 // GetTransactionField requests the specific field of a specific transaction
@@ -80,7 +83,7 @@ func (c *Client) GetTransactionField(ctx context.Context, txID string, field str
 	if !ok {
 		return "", errors.New("field does not exist")
 	}
-	body, err := c.get(ctx, fmt.Sprintf("tx/%s/%s", txID, field))
+	body, err := c.get(ctx, fmt.Sprintf("tx/%s/%s", txID, field), nil)
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +93,7 @@ func (c *Client) GetTransactionField(ctx context.Context, txID string, field str
 
 // GetBlockByID requests a block by its id
 func (c *Client) GetBlockByID(ctx context.Context, blockID string) (*Block, error) {
-	body, err := c.get(ctx, fmt.Sprintf("block/hash/%s", blockID))
+	body, err := c.get(ctx, fmt.Sprintf("block/hash/%s", blockID), v2BlockFormatHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +108,7 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID string) (*Block, erro
 
 // GetBlockByHeight requests a block by its height
 func (c *Client) GetBlockByHeight(ctx context.Context, height int64) (*Block, error) {
-	body, err := c.get(ctx, fmt.Sprintf("block/height/%d", height))
+	body, err := c.get(ctx, fmt.Sprintf("block/height/%d", height), v2BlockFormatHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +123,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height int64) (*Block, er
 
 // GetCurrentBlock requests the latest block of the weave
 func (c *Client) GetCurrentBlock(ctx context.Context) (*Block, error) {
-	body, err := c.get(ctx, "current_block")
+	body, err := c.get(ctx, "current_block", v2BlockFormatHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +138,7 @@ func (c *Client) GetCurrentBlock(ctx context.Context) (*Block, error) {
 
 // GetReward requests the current network reward
 func (c *Client) GetReward(ctx context.Context, data []byte) (string, error) {
-	body, err := c.get(ctx, fmt.Sprintf("price/%d", len(data)))
+	body, err := c.get(ctx, fmt.Sprintf("price/%d", len(data)), nil)
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +148,7 @@ func (c *Client) GetReward(ctx context.Context, data []byte) (string, error) {
 
 // GetBalance requests the current balance of an address
 func (c *Client) GetBalance(ctx context.Context, address string) (string, error) {
-	body, err := c.get(ctx, fmt.Sprintf("wallet/%s/balance", address))
+	body, err := c.get(ctx, fmt.Sprintf("wallet/%s/balance", address), nil)
 	if err != nil {
 		return "", err
 	}
@@ -155,11 +158,11 @@ func (c *Client) GetBalance(ctx context.Context, address string) (string, error)
 
 // GetPeers requests the list of peers of a node
 func (c *Client) GetPeers(ctx context.Context) ([]string, error) {
-	body, err := c.get(ctx, "peers")
+	body, err := c.get(ctx, "peers", nil)
 	if err != nil {
 		return nil, err
 	}
-	peers := []string{}
+	var peers []string
 	err = json.Unmarshal(body, &peers)
 	if err != nil {
 		return nil, err
@@ -171,18 +174,22 @@ func (c *Client) GetPeers(ctx context.Context) ([]string, error) {
 
 // GetInfo requests the information of a node
 func (c *Client) GetInfo(ctx context.Context) (*NetworkInfo, error) {
-	body, err := c.get(ctx, "info")
+	body, err := c.get(ctx, "info",nil)
 	if err != nil {
 		return nil, err
 	}
 	info := NetworkInfo{}
-	json.Unmarshal(body, &info)
+	err = json.Unmarshal(body, &info)
+	if err != nil {
+		return nil, err
+	}
+
 	return &info, nil
 }
 
 // Commit sends a transaction to the weave with a context
 func (c *Client) Commit(ctx context.Context, data []byte) (string, error) {
-	body, err := c.post(ctx, "tx", data)
+	body, err := c.post(ctx, "tx", data, nil)
 	if err != nil {
 		return "", err
 	}
@@ -214,15 +221,18 @@ func handleHTTPError(resp io.Reader, returnedError error) ([]byte, error) {
 	return nil, returnedError
 }
 
-func (c *Client) requestWithContext(ctx context.Context, method string, url string, body []byte) (io.ReadCloser, error) {
+func (c *Client) requestWithContext(ctx context.Context, method string, url string, body []byte, headers map[string]string) (io.ReadCloser, error) {
 	req, err := http.NewRequest(method, url, ioutil.NopCloser(bytes.NewReader(body)))
 	if err != nil {
 		return nil, err
 	}
 	reqWithContext := req.WithContext(ctx)
 	reqWithContext.ContentLength = int64(len(body))
-	if method == "POST" {
-		reqWithContext.Header.Set("Content-type", "application/json")
+
+	if len(headers) > 0 {
+		for k, v := range headers {
+			reqWithContext.Header.Set(k, v)
+		}
 	}
 
 	resp, err := c.client.Do(req)
@@ -235,13 +245,14 @@ func (c *Client) requestWithContext(ctx context.Context, method string, url stri
 	return resp.Body, nil
 }
 
-func (c *Client) post(ctx context.Context, endpoint string, body []byte) ([]byte, error) {
-	resp, err := c.requestWithContext(ctx, "POST", c.formatURL(endpoint), body)
+func (c *Client) post(ctx context.Context, endpoint string, body []byte, headers map[string]string) ([]byte, error) {
+	headers["Content-type"] = "application/json"
+	resp, err := c.requestWithContext(ctx, "POST", c.formatURL(endpoint), body, headers)
 	return getResponse(resp, err)
 }
 
-func (c *Client) get(ctx context.Context, endpoint string) ([]byte, error) {
-	resp, err := c.requestWithContext(ctx, "GET", c.formatURL(endpoint), nil)
+func (c *Client) get(ctx context.Context, endpoint string, headers map[string]string) ([]byte, error) {
+	resp, err := c.requestWithContext(ctx, "GET", c.formatURL(endpoint), nil, headers)
 	return getResponse(resp, err)
 }
 
