@@ -22,6 +22,9 @@ type mockArClient struct {
 	TxErr error
 }
 
+func (m *mockArClient) TxAnchor(ctx context.Context) (string, error) {
+	return m.LastTx, m.LastTxErr
+}
 func (m *mockArClient) LastTransaction(ctx context.Context, address string) (string, error) {
 	return m.LastTx, m.LastTxErr
 }

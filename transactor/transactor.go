@@ -21,6 +21,7 @@ const defaultURL = "http://127.0.0.1" + ":" + defaultPort
 
 // ClientCaller is the base interface needed to create a Transactor
 type ClientCaller interface {
+	TxAnchor(ctx context.Context) (string, error)
 	LastTransaction(ctx context.Context, address string) (string, error)
 	GetReward(ctx context.Context, data []byte) (string, error)
 	Commit(ctx context.Context, data []byte) (string, error)
@@ -64,7 +65,7 @@ func NewTransactor(fullURL string) (*Transactor, error) {
 
 // CreateTransaction creates a brand new transaction
 func (tr *Transactor) CreateTransaction(ctx context.Context, w arweave.WalletSigner, amount string, data []byte, target string) (*tx.Transaction, error) {
-	lastTx, err := tr.Client.LastTransaction(ctx, w.Address())
+	lastTx, err := tr.Client.TxAnchor(ctx)
 	if err != nil {
 		return nil, err
 	}
