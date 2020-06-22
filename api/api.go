@@ -33,6 +33,14 @@ func (c *Client) GetData(ctx context.Context, txID string) (string, error) {
 	return string(body), nil
 }
 
+func (c *Client) TxAnchor(ctx context.Context) (string, error) {
+	body, err := c.get(ctx, "tx_anchor")
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
 // LastTransaction requests the last transaction of an account
 func (c *Client) LastTransaction(ctx context.Context, address string) (string, error) {
 	body, err := c.get(ctx, fmt.Sprintf("wallet/%s/last_tx", address))

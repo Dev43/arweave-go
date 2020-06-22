@@ -18,6 +18,10 @@ type mockCaller struct {
 	Txn    *tx.Transaction
 }
 
+func (m *mockCaller) TxAnchor(ctx context.Context) (string, error) {
+	return m.LastTx, nil
+}
+
 func (m *mockCaller) LastTransaction(ctx context.Context, address string) (string, error) {
 	return m.LastTx, nil
 }
