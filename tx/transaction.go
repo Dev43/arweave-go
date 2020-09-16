@@ -104,6 +104,10 @@ func (t *Transaction) SetID(id []byte) {
 	t.id = id
 }
 
+func (t *Transaction) SetSignature(signature []byte) {
+	t.signature = signature
+}
+
 // Signature returns the signature of the transaction
 func (t *Transaction) Signature() string {
 	return utils.EncodeToBase64(t.signature)
@@ -114,7 +118,7 @@ func (t *Transaction) Signature() string {
 // the signature
 func (t *Transaction) Sign(w arweave.WalletSigner) (*Transaction, error) {
 	// format the message
-	payload, err := t.formatMsgBytes()
+	payload, err := t.FormatMsgBytes()
 	if err != nil {
 		return nil, err
 	}
@@ -192,11 +196,11 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// formatMsgBytes formats the message that needs to be signed. All fields
+// FormatMsgBytes formats the message that needs to be signed. All fields
 // need to be an array of bytes originating from the necessary data (not base64url encoded).
 // The signing message is the SHA256 of the concatenation of the byte arrays
 // of the owner public key, target address, data, quantity, reward and last transaction
-func (t *Transaction) formatMsgBytes() ([]byte, error) {
+func (t *Transaction) FormatMsgBytes() ([]byte, error) {
 	var msg []byte
 	lastTx, err := utils.DecodeString(t.LastTx())
 	if err != nil {
