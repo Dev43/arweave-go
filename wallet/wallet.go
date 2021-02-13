@@ -50,6 +50,7 @@ func GenerateWallet() *Wallet {
 
 	// Finally base64url encode it to have the resulting address
 	w.address = utils.EncodeToBase64(h.Sum(nil))
+	w.publicKey = utils.EncodeToBase64(rsaKey.N.Bytes())
 	return w
 }
 
