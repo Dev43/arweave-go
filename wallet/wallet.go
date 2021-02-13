@@ -31,6 +31,12 @@ func NewWallet() *Wallet {
 	return &Wallet{}
 }
 
+// GenerateWallet generates a new JWK wallet.
+func GenerateWallet() *Wallet {
+	reader := rand.Reader
+	key, _ := rsa.GenerateKey(reader, 4096)
+}
+
 // Address returns the address of the account
 func (w *Wallet) Address() string {
 	return w.address
