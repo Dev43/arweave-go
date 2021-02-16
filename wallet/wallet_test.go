@@ -57,3 +57,20 @@ func TestSignature(t *testing.T) {
 	}
 
 }
+
+func TestGeneration(t *testing.T) {
+	w := GenerateWallet()
+
+	toSign := []byte("hello")
+	msg := sha256.Sum256(toSign)
+
+	sig, err := w.Sign(msg[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = w.Verify(msg[:], sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -31,6 +31,29 @@ func NewWallet() *Wallet {
 	return &Wallet{}
 }
 
+// GenerateWallet generates a new JWK wallet.
+func GenerateWallet() *Wallet {
+	reader := rand.Reader
+	rsaKey, _ := rsa.GenerateKey(reader, 4096)
+	w := &Wallet{}
+
+	w.key = &gojwk.Key{
+		Kty: "RSA",
+		N: utils.EncodeToBase64(rsaKey.N.Bytes()),
+		E: utils.EncodeToBase64(big.NewInt(int64(rsaKey.E)).Bytes()),
+		D: utils.EncodeToBase64(rsaKey.D.Bytes()),
+	}
+	w.pubKey = rsaKey.Public().(*rsa.PublicKey)
+	// Take the "n", in bytes and hash it using SHA256
+	h := sha256.New()
+	h.Write(rsaKey.N.Bytes())
+
+	// Finally base64url encode it to have the resulting address
+	w.address = utils.EncodeToBase64(h.Sum(nil))
+	w.publicKey = utils.EncodeToBase64(rsaKey.N.Bytes())
+	return w
+}
+
 // Address returns the address of the account
 func (w *Wallet) Address() string {
 	return w.address
