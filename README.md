@@ -1,3 +1,8 @@
+# [Announcement]
+
+This Arweave SDK has been archived. If you are looking for an excellent library, please check out everFinance's [goar](https://github.com/everFinance/goar)
+
+
 # Arweave Go SDK
 
 
